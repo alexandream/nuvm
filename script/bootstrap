@@ -1,0 +1,44 @@
+#!/bin/sh
+
+ATEST_URL=https://github.com/alexandream/atest.git
+
+set -e
+
+BASE_DIR="$(dirname "$0")/../"
+test -d ${BASE_DIR}
+cd ${BASE_DIR}
+
+make_dir_list() {
+  FILE_LIST=$1
+  OLD_PREFIX=$2
+  NEW_PREFIX=$3
+  RESULT=""
+  for FILE in $FILE_LIST; do
+    FILE_DIR=$(dirname "${FILE}")
+    DIR=${NEW_PREFIX}${FILE_DIR#${OLD_PREFIX}}
+    RESULT="${RESULT} ${DIR}"
+  done
+  echo -n "${RESULT}" | xargs -n1 | sort -u | xargs
+}
+
+# Create all directories needed for the build.
+SOURCE_FILES=$(find src/ -name '*.c' -o -name '*.h')
+TEST_FILES=$(find "test/" -name '*.c')
+
+OBJECT_DIRS=$(make_dir_list "${SOURCE_FILES}" src build/nuvm)
+TEST_DIRS=$(make_dir_list "${TEST_FILES}" "test" "build/test")
+REPORT_DIRS=$(make_dir_list "${TEST_FILES}" 'test' 'build/test-reports')
+
+mkdir -p $OBJECT_DIRS $TEST_DIRS $REPORT_DIRS
+mkdir -p depend
+mkdir -p dist
+
+cd depend
+
+if [ ! -d atest ]; then
+  git clone ${ATEST_URL}
+fi
+
+cd atest
+git pull > /dev/null
+make > /dev/null

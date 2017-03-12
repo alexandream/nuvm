@@ -31,3 +31,11 @@
 # Debug files
 *.dSYM/
 *.su
+
+# Editor auxiliary files
+.*.swp
+
+# Build, distribution and test directories
+/depend/
+/build/
+/dist/

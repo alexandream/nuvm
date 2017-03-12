@@ -1,0 +1,83 @@
+#!/bin/sh
+DEFAULT_ATEST_PREFIX=./depend/atest/dist/
+DEFAULT_CC=clang
+DEFAULT_CFLAGS="         \
+  -std=c89               \
+  -O0                    \
+  -Wall                  \
+  -Wextra                \
+  -Wno-unused-parameter  \
+  -Wno-unused-function   \
+"
+
+if [ -z "${ATEST_PREFIX}" ]; then
+  ATEST_PREFIX=${DEFAULT_ATEST_PREFIX}
+fi
+
+if [ -z "${CC}" ]; then
+  CC=${DEFAULT_CC}
+fi
+
+if [ -z "${CFLAGS}" ]; then
+  CFLAGS=${DEFAULT_CFLAGS}
+fi
+
+set -e
+
+BASE_DIR="$(dirname "$0")/../"
+test -d ${BASE_DIR}
+cd ${BASE_DIR}
+
+make_target() {
+  ATEST_PREFIX=${ATEST_PREFIX}   \
+  CC=${CC}                       \
+  CFLAGS=${CFLAGS}               \
+  N_TEST=1                       \
+  N_DEBUG=1                      \
+  make $1
+}
+
+get_sorted_runners() {
+  find 'build/test' -name '*.run' |               \
+  sed 's_\(build/test/\)/\(.*\)_\2 \1/\2_' | \
+  sort -u |                                       \
+  sed 's_\(^[^ ]* \)__'
+}
+
+
+run_all_tests() {
+  RUNNERS=$(get_sorted_runners)
+  for R in ${RUNNERS}; do
+    R_NAME="${R#build/test/}"
+    R_NAME="${R_NAME%.run}"
+       REPORT="build/test-reports/${R_NAME}.report"
+    if [ -n "${VERBOSE}" ]; then
+        echo "Running test runner ${R}."
+    fi
+    ${R} > ${REPORT}
+  done 
+}
+
+
+delete_all_reports() {
+  find 'build/test-reports' -name '*.report' -exec rm '{}' \;
+}
+
+
+make_target 'clean' > /dev/null # Let us start with a clean sheet.
+make_target 'test' > /dev/null
+
+if [ "$1" = "verbose" ]; then
+  VERBOSE="yes"
+fi
+
+delete_all_reports
+run_all_tests
+REPORTS=$(find build/test-reports -name '*.report')
+
+if [ -n "${REPORTS}" ]; then
+	if [ -n "${VERBOSE}" ]; then
+		echo "Running reporter."
+	fi
+	${ATEST_PREFIX}/atreport ${REPORTS}
+fi
