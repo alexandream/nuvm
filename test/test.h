@@ -4,6 +4,8 @@
 #include "atest.h"
 #include "atcheck.h"
 
+#include "common/errors.h"
+
 #define DESTRUCTOR(NAME)          at_destructor(NAME)
 #define CONSTRUCTOR(NAME)         at_constructor(NAME)
 #define SETUP(NAME)               at_setup(NAME)
@@ -15,12 +17,22 @@
 
 #define ASSERT(CHECK)        at_assert(CHECK)
 #define ERROR(MSG, DISPOSE)  at_error(MSG, DISPOSE)
+/* Helper functions. */
+
+AtCheckResult
+is_error(const char* expr, NError* err, const char* type_name);
+
+AtCheckResult
+is_error_type(const char* expr, NError* err, NErrorType* type_name);
 
 /* Checks used during the tests. */
 #define EQ_PTR(VALUE, EXPECTED) AT_EQ_PTR(VALUE, EXPECTED)
 #define IS_NULL(VALUE) AT_IS_NULL(VALUE)
 #define IS_TRUE(VALUE) AT_IS_TRUE(VALUE)
 
+#define IS_ERROR(VALUE, ERROR)  is_error(#VALUE, &VALUE, ERROR)
+#define IS_ERROR_TYPE(VAL, ERR) is_error_type(#VAL, &VAL, ERR)
+#define IS_OK(VALUE)            IS_ERROR_TYPE(VALUE, NULL)
 #define EQ_STR(VALUE, EXPECTED) AT_EQ_STR(VALUE, EXPECTED)
 
 #define EQ_INT(VALUE, EXPECTED)  AT_EQ_INT(VALUE, EXPECTED)
