@@ -53,7 +53,17 @@ TEST(pc_starts_on_zero) {
 TEST(index_error_is_registered) {
     NError error = n_error_ok();
     NErrorType* error_type =
-        n_error_type("nuvm.evaluator.IndexOutOfBounds", &error);
+        n_error_type("nuvm.IndexOutOfBounds", &error);
+
+    ASSERT(IS_TRUE(error_type != NULL));
+    ASSERT(IS_OK(error));
+}
+
+
+TEST(opcode_error_is_registered) {
+    NError error = n_error_ok();
+    NErrorType* error_type =
+        n_error_type("nuvm.UnknownOpcode", &error);
 
     ASSERT(IS_TRUE(error_type != NULL));
     ASSERT(IS_OK(error));
@@ -103,12 +113,13 @@ TEST(get_register_detects_out_of_range) {
     NError error = n_error_ok();
     n_evaluator_get_register(&EVAL, NUM_REGISTERS, &error);
 
-    ASSERT(IS_ERROR(error, "nuvm.evaluator.IndexOutOfBounds"));
+    ASSERT(IS_ERROR(error, "nuvm.IndexOutOfBounds"));
 }
 
 
 AtTest* tests[] = {
     &index_error_is_registered,
+    &opcode_error_is_registered,
     &step_nop_increases_pc,
     &pc_starts_on_zero,
     &run_stops_on_halt,
