@@ -1,5 +1,5 @@
-#ifndef N_E_VALUE_H
-#define N_E_VALUE_H
+#ifndef N_E_VALUES_H
+#define N_E_VALUES_H
 
 #include "../common/compatibility/stdint.h"
 #include "types.h"
@@ -48,9 +48,12 @@ n_is_boolean(NValue value);
 int
 n_is_fixnum(NValue value);
 
+int
+n_is_pointer(NValue value);
+
 NType*
 n_type_of(NValue value);
 
 #define n_eq_values(LEFT, RIGHT) ((LEFT) == (RIGHT))
-#endif /* N_E_VALUE_H */
+#endif /* N_E_VALUES_H */
 
