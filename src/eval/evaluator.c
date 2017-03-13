@@ -48,6 +48,14 @@ void n_evaluator_step(NEvaluator *self, NError *error) {
         case N_OP_HALT:
             self->halted = 1;
             break;
+        case N_OP_LOAD_I16:
+            break;
+        case N_OP_JUMP:
+            break;
+        case N_OP_JUMP_UNLESS:
+            break;
+        case N_OP_CALL:
+            break;
         default: {
             self->halted = 1;
             n_set_error(error, &UNKNOWN_OPCODE, "Found an unknown opcode.",
