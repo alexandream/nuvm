@@ -141,7 +141,7 @@ TEST(decode_jump_unless_reverts_encode) {
 TEST(encode_jump_has_right_opcode) {
     n_encode_op_jump(BUFFER, 0);
 
-    ASSERT(EQ_UINT(BUFFER[0], N_OP_JUMP_UNLESS));
+    ASSERT(EQ_UINT(BUFFER[0], N_OP_JUMP));
 }
 
 
@@ -149,7 +149,7 @@ TEST(encode_jump_uses_three_bytes) {
     /* The opcode and arguments are irrelevant to this test. */
     int used_bytes = n_encode_op_jump(BUFFER, 0);
 
-    ASSERT(EQ_INT(used_bytes, 4));
+    ASSERT(EQ_INT(used_bytes, 3));
 }
 
 
@@ -158,7 +158,7 @@ TEST(decode_jump_uses_three_bytes) {
     /* The opcode and arguments are irrelevant to this test. */
     int used_bytes = n_decode_op_jump(BUFFER, &offset);
 
-    ASSERT(EQ_INT(used_bytes, 4));
+    ASSERT(EQ_INT(used_bytes, 3));
 }
 
 
