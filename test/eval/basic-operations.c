@@ -100,12 +100,12 @@ TEARDOWN(teardown) {
 }
 
 
-TEST(op_load_i16_increments_pc_by_2) {
+TEST(op_load_i16_increments_pc_by_4) {
     n_encode_op_load_i16(CODE, 0, 0);
     n_evaluator_step(&EVAL, &ERR);
 
     ASSERT(IS_OK(ERR));
-    ASSERT(EQ_INT(EVAL.pc, 2));
+    ASSERT(EQ_INT(EVAL.pc, 4));
 }
 
 
@@ -222,7 +222,7 @@ TEST(op_call_stores_returned_value) {
 
 
 AtTest* tests[] = {
-    &op_load_i16_increments_pc_by_2,
+    &op_load_i16_increments_pc_by_4,
     &op_load_i16_loads_correct_value,
 
     &op_jump_adds_offset_to_pc,

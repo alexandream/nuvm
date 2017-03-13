@@ -13,6 +13,15 @@ NErrorType INDEX_OO_BOUNDS =  { "nuvm.IndexOutOfBounds", NULL };
 static
 NErrorType UNKNOWN_OPCODE  =  { "nuvm.UnknownOpcode", NULL };
 
+static
+NErrorType *ILLEGAL_ARGUMENT = NULL;
+
+static int
+op_jump_unless(NEvaluator *self, unsigned char *stream, NError *error);
+
+static int
+op_load_i16(NEvaluator *self, unsigned char *stream, NError *error);
+
 int
 ni_init_evaluator(void) {
     NError error = n_error_ok();
@@ -34,6 +43,12 @@ ni_init_evaluator(void) {
         n_destroy_error(&error);
         return -4;
     }
+
+    ILLEGAL_ARGUMENT = n_error_type("nuvm.IllegalArgument", &error);
+    if (!n_is_ok(&error)) {
+        n_destroy_error(&error);
+        return -5;
+    }
     return 0;
 }
 
@@ -49,10 +64,17 @@ void n_evaluator_step(NEvaluator *self, NError *error) {
             self->halted = 1;
             break;
         case N_OP_LOAD_I16:
+            self->pc += op_load_i16(self, stream, error);
             break;
-        case N_OP_JUMP:
+        case N_OP_JUMP: {
+            int16_t offset;
+            n_decode_op_jump(stream, &offset);
+            self->pc += offset;
             break;
+        }
+
         case N_OP_JUMP_UNLESS:
+            self->pc += op_jump_unless(self, stream, error);
             break;
         case N_OP_CALL:
             break;
@@ -104,3 +126,34 @@ nt_construct_evaluator(NEvaluator* self, unsigned char* code,
 }
 #endif /* N_TEST */
 
+static int
+op_load_i16(NEvaluator *self, unsigned char *stream, NError *error) {
+    uint8_t dest;
+    int16_t value;
+    int size = n_decode_op_load_i16(stream, &dest, &value);
+
+    self->registers[dest] = n_wrap_fixnum(value);
+    return size;
+}
+
+
+static int
+op_jump_unless(NEvaluator *self, unsigned char *stream, NError *error) {
+    uint8_t r_condition;
+    int16_t offset;
+    int size = n_decode_op_jump_unless(stream, &r_condition, &offset);
+    NValue condition = self->registers[r_condition];
+
+    if (n_eq_values(condition, N_TRUE)) {
+        return offset;
+    }
+    else if (n_eq_values(condition, N_FALSE)) {
+        return size;
+    }
+    else {
+        n_set_error(error, ILLEGAL_ARGUMENT, "Condition to "
+                    "jump-unless must be a valid Boolean value.",
+                    NULL, NULL);
+        return 0;
+    }
+}
