@@ -8,27 +8,13 @@
 #include "common/errors.h"
 
 
-static
-NError ERR;
-
 static unsigned char BUFFER[128];
-
-CONSTRUCTOR(constructor) {
-
-}
-
 
 SETUP(setup) {
     int i;
-    ERR = n_error_ok();
     for (i = 0; i < 128; i++) {
         BUFFER[i] = 0;
     }
-}
-
-
-TEARDOWN(teardown) {
-    n_destroy_error(&ERR);
 }
 
 
@@ -245,4 +231,4 @@ AtTest* tests[] = {
     NULL
 };
 
-TEST_RUNNER("InstructionEncoding", tests, constructor, NULL, setup, teardown)
+TEST_RUNNER("InstructionEncoding", tests, NULL, NULL, setup, NULL)
