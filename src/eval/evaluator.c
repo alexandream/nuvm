@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 #include "values.h"
+#include "primitives.h"
 #include "evaluator.h"
 
 #include "../common/opcodes.h"
@@ -21,6 +22,9 @@ op_jump_unless(NEvaluator *self, unsigned char *stream, NError *error);
 
 static int
 op_load_i16(NEvaluator *self, unsigned char *stream, NError *error);
+
+static int
+op_call(NEvaluator *self, unsigned char *stream, NError *error);
 
 int
 ni_init_evaluator(void) {
@@ -72,11 +76,11 @@ void n_evaluator_step(NEvaluator *self, NError *error) {
             self->pc += offset;
             break;
         }
-
         case N_OP_JUMP_UNLESS:
             self->pc += op_jump_unless(self, stream, error);
             break;
         case N_OP_CALL:
+            self->pc += op_call(self, stream, error);
             break;
         default: {
             self->halted = 1;
@@ -127,13 +131,26 @@ nt_construct_evaluator(NEvaluator* self, unsigned char* code,
 #endif /* N_TEST */
 
 static int
-op_load_i16(NEvaluator *self, unsigned char *stream, NError *error) {
-    uint8_t dest;
-    int16_t value;
-    int size = n_decode_op_load_i16(stream, &dest, &value);
+op_call(NEvaluator *self, unsigned char *stream, NError *error) {
+    NValue arguments[256];
+    int i;
+    uint8_t dest, target, n_args;
+    int size = n_decode_op_call(stream, &dest, &target, &n_args);
+    NValue primitive = self->registers[target];
+    NValue result;
 
-    self->registers[dest] = n_wrap_fixnum(value);
-    return size;
+    for (i = 0; i < n_args; i++) {
+        uint8_t arg_index = stream[size + i];
+        arguments[i] = self->registers[arg_index];
+    }
+
+    result = n_call_primitive(primitive, n_args, arguments, error);
+    if (!n_is_ok(error)) {
+        return 0;
+    }
+
+    self->registers[dest] = result;
+    return size + n_args;
 }
 
 
@@ -156,4 +173,15 @@ op_jump_unless(NEvaluator *self, unsigned char *stream, NError *error) {
                     NULL, NULL);
         return 0;
     }
+}
+
+
+static int
+op_load_i16(NEvaluator *self, unsigned char *stream, NError *error) {
+    uint8_t dest;
+    int16_t value;
+    int size = n_decode_op_load_i16(stream, &dest, &value);
+
+    self->registers[dest] = n_wrap_fixnum(value);
+    return size;
 }

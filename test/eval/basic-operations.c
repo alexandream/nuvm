@@ -115,6 +115,7 @@ FixnumLoadData load_i16_array[] = {
     { 3, 0 }
 };
 AtArrayIterator load_i16_iter = at_static_array_iterator(load_i16_array);
+
 DD_TEST(op_load_i16_loads_correct_value, load_i16_iter, FixnumLoadData, load) {
     uint8_t dest = load->dest;
     NFixnum value = load->value;
@@ -133,6 +134,7 @@ DD_TEST(op_load_i16_loads_correct_value, load_i16_iter, FixnumLoadData, load) {
 
 int16_t jump_array[] = { -5, 0, 5 };
 AtArrayIterator jump_iter = at_static_array_iterator(jump_array);
+
 DD_TEST(op_jump_adds_offset_to_pc, jump_iter, int16_t, offset) {
     EVAL.pc = 32;
     n_encode_op_jump(CODE +32, *offset);
@@ -164,13 +166,13 @@ DD_TEST(op_jump_unless_adds_offset_to_pc, jump_unless_iter, int16_t, offset) {
 }
 
 
-TEST(op_call_adds_3_plus_nargs_to_pc) {
+TEST(op_call_adds_4_plus_nargs_to_pc) {
     n_encode_op_call(CODE, 0, 1, 5);
     REGISTERS[1] = TRUE_PRIMITIVE;
 
     n_evaluator_step(&EVAL, &ERR);
     ASSERT(IS_OK(ERR));
-    ASSERT(EQ_INT(EVAL.pc, 8));
+    ASSERT(EQ_INT(EVAL.pc, 9));
 }
 
 
@@ -184,13 +186,12 @@ TEST(op_call_calls_primitive_func) {
     ASSERT(EQ_INT(FLAG, 1));
 }
 
-
 TEST(op_call_passes_arguments) {
     int i;
     n_encode_op_call(CODE, 0, 5, 3);
-    CODE[3] = 7;
-    CODE[4] = 1;
-    CODE[5] = 9;
+    CODE[4] = 7;
+    CODE[5] = 1;
+    CODE[6] = 9;
 
     for (i = 0; i < 3; i++) {
         COPY_RESULT[i] = N_UNKNOWN;
@@ -229,7 +230,7 @@ AtTest* tests[] = {
     &op_jump_unless_adds_4_to_pc_on_false,
     &op_jump_unless_adds_offset_to_pc,
 
-    &op_call_adds_3_plus_nargs_to_pc,
+    &op_call_adds_4_plus_nargs_to_pc,
     &op_call_calls_primitive_func,
     &op_call_passes_arguments,
     &op_call_stores_returned_value,
@@ -238,7 +239,7 @@ AtTest* tests[] = {
 };
 
 
-TEST_RUNNER("Evaluator", tests, constructor, NULL, setup, teardown)
+TEST_RUNNER("BasicOperations", tests, constructor, NULL, setup, teardown)
 
 static NValue
 true_function(int n_args, NValue *args, NError *error) {
