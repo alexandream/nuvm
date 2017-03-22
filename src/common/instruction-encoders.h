@@ -21,4 +21,10 @@ n_encode_op_jump(unsigned char* stream, int16_t offset);
 int
 n_encode_op_call(unsigned char* stream, uint8_t dest, uint8_t target,
                  uint8_t n_args);
+
+int
+n_encode_op_arg_ref(unsigned char* stream, uint8_t dest, uint8_t source);
+
+int
+n_encode_op_return(unsigned char* stream, uint8_t source);
 #endif /* N_C_INSTRUCTION_ENCODING_H*/

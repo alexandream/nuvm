@@ -201,6 +201,82 @@ TEST(decode_call_reverts_encode) {
 }
 
 
+TEST(encode_arg_ref_has_right_opcode) {
+    n_encode_op_arg_ref(BUFFER, 0, 0);
+
+    ASSERT(EQ_UINT(BUFFER[0], N_OP_ARG_REF));
+}
+
+
+TEST(encode_arg_ref_uses_three_bytes) {
+    /* The opcode and arguments are irrelevant to this test. */
+    int used_bytes = n_encode_op_arg_ref(BUFFER, 0, 0);
+
+    ASSERT(EQ_INT(used_bytes, 3));
+}
+
+
+TEST(decode_arg_ref_uses_three_bytes) {
+    uint8_t dst;
+    uint8_t src;
+    /* The opcode and arguments are irrelevant to this test. */
+    int used_bytes = n_decode_op_arg_ref(BUFFER, &dst, &src);
+
+    ASSERT(EQ_INT(used_bytes, 3));
+}
+
+
+TEST(decode_arg_ref_reverts_encode) {
+    uint8_t dst = 0x12;
+    uint8_t src = 0x34;
+    uint8_t d_dst;
+    uint8_t d_src;
+
+    n_encode_op_arg_ref(BUFFER, dst, src);
+    n_decode_op_arg_ref(BUFFER, &d_dst, &d_src);
+
+    ASSERT(EQ_UINT(d_dst, dst));
+    ASSERT(EQ_UINT(d_src, src));
+}
+
+
+TEST(encode_return_has_right_opcode) {
+    n_encode_op_return(BUFFER, 0);
+
+    ASSERT(EQ_UINT(BUFFER[0], N_OP_RETURN));
+}
+
+
+TEST(encode_return_uses_two_bytes) {
+    /* The opcode and arguments are irrelevant to this test. */
+    int used_bytes = n_encode_op_return(BUFFER, 0);
+
+    ASSERT(EQ_INT(used_bytes, 2));
+
+}
+
+
+TEST(decode_return_uses_two_bytes) {
+    uint8_t src;
+    /* The opcode and arguments are irrelevant to this test. */
+    int used_bytes = n_decode_op_return(BUFFER, &src);
+
+    ASSERT(EQ_INT(used_bytes, 2));
+
+}
+
+
+TEST(decode_return_reverts_encode) {
+    uint8_t src = 0x34;
+    uint8_t d_src;
+
+    n_encode_op_return(BUFFER, src);
+    n_decode_op_return(BUFFER, &d_src);
+
+    ASSERT(EQ_UINT(d_src, src));
+}
+
+
 AtTest* tests[] = {
     &encode_halt_has_right_opcode,
     &encode_halt_uses_one_byte,
@@ -228,6 +304,15 @@ AtTest* tests[] = {
     &decode_call_uses_four_bytes,
     &decode_call_reverts_encode,
 
+    &encode_arg_ref_has_right_opcode,
+    &encode_arg_ref_uses_three_bytes,
+    &decode_arg_ref_uses_three_bytes,
+    &decode_arg_ref_reverts_encode,
+
+    &encode_return_has_right_opcode,
+    &encode_return_uses_two_bytes,
+    &decode_return_uses_two_bytes,
+    &decode_return_reverts_encode,
     NULL
 };
 

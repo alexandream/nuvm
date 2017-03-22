@@ -56,3 +56,20 @@ n_encode_op_call(unsigned char* stream, uint8_t dest, uint8_t target,
     stream[3] = n_args;
     return 4;
 }
+
+
+int
+n_encode_op_arg_ref(unsigned char* stream, uint8_t dest, uint8_t source) {
+    stream[0] = N_OP_ARG_REF;
+    stream[1] = dest;
+    stream[2] = source;
+    return 3;
+}
+
+
+int
+n_encode_op_return(unsigned char* stream, uint8_t source) {
+    stream[0] = N_OP_RETURN;
+    stream[1] = source;
+    return 2;
+}

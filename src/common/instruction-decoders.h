@@ -39,4 +39,19 @@ n_decode_op_call(unsigned char* stream, uint8_t *dest, uint8_t *target,
     *n_args = stream[3];
     return 4;
 }
+
+
+int
+n_decode_op_arg_ref(unsigned char* stream, uint8_t* dest, uint8_t* source) {
+    *dest = stream[1];
+    *source = stream[2];
+    return 3;
+}
+
+
+int
+n_decode_op_return(unsigned char* stream, uint8_t* source) {
+    *source = stream[1];
+    return 2;
+}
 #endif /* N_C_INSTRUCTION_ENCODING_H*/

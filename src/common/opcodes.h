@@ -7,5 +7,7 @@
 #define N_OP_JUMP_UNLESS 0x03
 #define N_OP_JUMP        0x04
 #define N_OP_CALL        0x05
+#define N_OP_RETURN      0x06
+#define N_OP_ARG_REF     0x07
 
 #endif /* N_C_OPCODES_H */
