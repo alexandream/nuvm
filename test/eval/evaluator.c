@@ -117,6 +117,18 @@ TEST(get_register_detects_out_of_range) {
 }
 
 
+TEST(sp_starts_on_end_of_dummy_frame) {
+    /* There's two elements on the stack upon construction. */
+    ASSERT(EQ_INT(EVAL.sp, 1));
+}
+
+
+TEST(dummy_frame_is_pushed) {
+    ASSERT(EQ_INT(EVAL.stack[0], 0));
+    ASSERT(EQ_INT(EVAL.stack[1], -1));
+}
+
+
 AtTest* tests[] = {
     &index_error_is_registered,
     &opcode_error_is_registered,
@@ -125,6 +137,8 @@ AtTest* tests[] = {
     &run_stops_on_halt,
     &get_register_gives_correct_value,
     &get_register_detects_out_of_range,
+    &sp_starts_on_end_of_dummy_frame,
+    &dummy_frame_is_pushed,
     NULL
 };
 

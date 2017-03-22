@@ -127,9 +127,12 @@ nt_construct_evaluator(NEvaluator* self, unsigned char* code, int code_size,
     self->registers = registers;
     self->num_registers = num_registers;
     self->pc = 0;
-    self->sp = -1;
     self->stack_size = N_STACK_SIZE;
     self->halted = 0;
+    /* Initialize the dummy frame */
+    self->sp = 1;
+    self->stack[0] = 0;
+    self->stack[1] = -1;
 }
 #endif /* N_TEST */
 
