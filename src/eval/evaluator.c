@@ -82,6 +82,11 @@ void n_evaluator_step(NEvaluator *self, NError *error) {
         case N_OP_CALL:
             self->pc += op_call(self, stream, error);
             break;
+        case N_OP_RETURN:
+            if (self->stack[self->sp] == -1) {
+                self->halted = 1;
+            }
+            break;
         default: {
             self->halted = 1;
             n_set_error(error, &UNKNOWN_OPCODE, "Found an unknown opcode.",

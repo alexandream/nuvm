@@ -222,6 +222,19 @@ TEST(op_call_stores_returned_value) {
 }
 
 
+TEST(op_return_halts_on_dummy_frame) {
+    n_encode_op_nop(CODE);
+    n_encode_op_nop(CODE+1);
+    n_encode_op_nop(CODE+2);
+    n_encode_op_return(CODE+3, 0);
+    n_encode_op_nop(CODE+5);
+
+    n_evaluator_run(&EVAL, &ERR);
+    ASSERT(IS_OK(ERR));
+    ASSERT(EQ_INT(EVAL.pc, 3));
+}
+
+
 AtTest* tests[] = {
     &op_load_i16_increments_pc_by_4,
     &op_load_i16_loads_correct_value,
@@ -235,6 +248,7 @@ AtTest* tests[] = {
     &op_call_passes_arguments,
     &op_call_stores_returned_value,
 
+    &op_return_halts_on_dummy_frame,
     NULL
 };
 
