@@ -2,6 +2,7 @@
 
 #include "values.h"
 #include "primitives.h"
+#include "procedures.h"
 
 static NType _boolean_type;
 static NType _unknown_type;
@@ -19,29 +20,33 @@ ni_init_values() {
         return -1;
     }
 
-	if (ni_init_primitives() < 0) {
-		return -2;
-	}
+    if (ni_init_primitives() < 0) {
+        return -2;
+    }
+
+    if (ni_init_procedures() < 0) {
+        return -3;
+    }
 
     n_construct_type(&_boolean_type, "nuvm.Boolean");
     n_register_type(&_boolean_type, &error);
     if (!n_is_ok(&error)) {
         n_destroy_error(&error);
-        return -3;
+        return -4;
     }
 
     n_construct_type(&_unknown_type, "nuvm.Unknown");
     n_register_type(&_unknown_type, &error);
     if (!n_is_ok(&error)) {
         n_destroy_error(&error);
-        return -3;
+        return -4;
     }
 
     n_construct_type(&_fixnum_type, "nuvm.Fixnum");
     n_register_type(&_fixnum_type, &error);
     if (!n_is_ok(&error)) {
         n_destroy_error(&error);
-        return -3;
+        return -5;
     }
 
     {
@@ -50,7 +55,7 @@ ni_init_values() {
         NObject *unknown_ptr = malloc(sizeof(NObject));
 
         if (!true_ptr || !false_ptr || !unknown_ptr) {
-            return -4;
+            return -5;
         }
 
         true_ptr->type = &_boolean_type;
@@ -109,7 +114,7 @@ n_is_fixnum(NValue value) {
 
 int
 n_is_pointer(NValue value) {
-	return !n_is_fixnum(value);
+    return !n_is_fixnum(value);
 }
 
 

@@ -7,8 +7,8 @@ typedef struct NPrimitive NPrimitive;
 typedef NValue (*NPrimitiveFunc)(int, NValue*, NError*);
 
 struct NPrimitive {
-	NObject object_header;
-	NPrimitiveFunc func;
+    NObject object_header;
+    NPrimitiveFunc func;
 };
 
 int

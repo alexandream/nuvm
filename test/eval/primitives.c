@@ -68,8 +68,8 @@ TEARDOWN(teardown) {
 
 TEST(primitive_type_is_registered) {
     NType* primitives_type = n_find_type("nuvm.PrimitiveProcedure", &ERR);
-    ASSERT(IS_TRUE(primitives_type != NULL));
     ASSERT(IS_OK(ERR));
+    ASSERT(IS_TRUE(primitives_type != NULL));
 }
 
 
@@ -95,9 +95,9 @@ TEST(type_of_primitive_is_correct) {
     NType *flag_type = n_type_of(FLAG_PRIMITIVE);
     NType *copy_type = n_type_of(COPY_PRIMITIVE);
 
-    ASSERT(IS_TRUE(flag_type != 0));
+    ASSERT(IS_TRUE(flag_type != NULL));
     ASSERT(EQ_STR(flag_type->name, "nuvm.PrimitiveProcedure"));
-    ASSERT(IS_TRUE(copy_type != 0));
+    ASSERT(IS_TRUE(copy_type != NULL));
     ASSERT(EQ_STR(copy_type->name, "nuvm.PrimitiveProcedure"));
 }
 
