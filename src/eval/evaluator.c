@@ -30,6 +30,9 @@ op_call(NEvaluator *self, unsigned char *stream, NError *error);
 static int
 op_return(NEvaluator *self, unsigned char *stream, NError *error);
 
+static int
+op_arg_ref(NEvaluator *self, unsigned char *stream, NError *error);
+
 int
 ni_init_evaluator(void) {
     NError error = n_error_ok();
@@ -91,6 +94,9 @@ void n_evaluator_step(NEvaluator *self, NError *error) {
             break;
         case N_OP_RETURN:
             self->pc = op_return(self, stream, error);
+            break;
+        case N_OP_ARG_REF:
+            self->pc += op_arg_ref(self, stream, error);
             break;
         default: {
             self->halted = 1;
@@ -221,6 +227,17 @@ op_return(NEvaluator *self, unsigned char *stream, NError *error) {
         return stored_pc;
     }
 
+}
+
+
+static int
+op_arg_ref(NEvaluator *self, unsigned char *stream, NError *error) {
+    uint8_t dest;
+    uint8_t source;
+    int size = n_decode_op_arg_ref(stream, &dest, &source);
+
+    self->registers[dest] = self->arguments[source];
+    return size;
 }
 
 

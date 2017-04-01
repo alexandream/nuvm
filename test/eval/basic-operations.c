@@ -366,6 +366,26 @@ TEST(return_sets_dest_register_value) {
 }
 
 
+TEST(arg_ref_adds_3_to_pc) {
+    n_encode_op_arg_ref(CODE, 0, 0);
+    n_evaluator_step(&EVAL, &ERR);
+
+    ASSERT(IS_OK(ERR));
+    ASSERT(EQ_INT(EVAL.pc, 3));
+}
+
+
+TEST(arg_ref_copies_values) {
+    EVAL.arguments[5] = N_TRUE;
+    REGISTERS[9] = N_UNKNOWN;
+
+    n_encode_op_arg_ref(CODE, 9, 5);
+    n_evaluator_step(&EVAL, &ERR);
+
+    ASSERT(IS_OK(ERR));
+    ASSERT(IS_TRUE(n_eq_values(REGISTERS[9], N_TRUE)));
+}
+
 AtTest* tests[] = {
     &load_i16_increments_pc_by_4,
     &load_i16_loads_correct_value,
@@ -389,6 +409,9 @@ AtTest* tests[] = {
     &return_decreases_2_from_sp,
     &return_sets_pc_to_saved_addr,
     &return_sets_dest_register_value,
+
+    &arg_ref_copies_values,
+    &arg_ref_adds_3_to_pc,
 
     NULL
 };
