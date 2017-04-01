@@ -27,6 +27,9 @@ op_load_i16(NEvaluator *self, unsigned char *stream, NError *error);
 static int
 op_call(NEvaluator *self, unsigned char *stream, NError *error);
 
+static int
+op_return(NEvaluator *self, unsigned char *stream, NError *error);
+
 int
 ni_init_evaluator(void) {
     NError error = n_error_ok();
@@ -87,9 +90,7 @@ void n_evaluator_step(NEvaluator *self, NError *error) {
             self->pc = op_call(self, stream, error);
             break;
         case N_OP_RETURN:
-            if (self->stack[self->sp] == -1) {
-                self->halted = 1;
-            }
+            self->pc = op_return(self, stream, error);
             break;
         default: {
             self->halted = 1;
@@ -198,6 +199,28 @@ op_jump_unless(NEvaluator *self, unsigned char *stream, NError *error) {
                     NULL, NULL);
         return 0;
     }
+}
+
+
+static int
+op_return(NEvaluator *self, unsigned char *stream, NError *error) {
+    if (self->stack[self->sp] == -1) {
+        /* We're on a dummy frame. Halt the machine. */
+        self->halted = 1;
+        return self->pc;
+    }
+    else {
+        int stored_pc = self->stack[self->sp];
+        int dest = self->stack[self->sp -1];
+        uint8_t src;
+
+        n_decode_op_return(stream, &src);
+        self->registers[dest] = self->registers[src];
+
+        self->sp -= 2;
+        return stored_pc;
+    }
+
 }
 
 

@@ -323,6 +323,49 @@ TEST(return_halts_on_dummy_frame) {
 }
 
 
+TEST(return_decreases_2_from_sp) {
+    EVAL.sp = 8;
+    n_encode_op_return(CODE, 0);
+
+    /* Create a useless frame. */
+    EVAL.stack[EVAL.sp -1] = 0;
+    EVAL.stack[EVAL.sp] = 0;
+
+    n_evaluator_step(&EVAL, &ERR);
+    ASSERT(IS_OK(ERR));
+    ASSERT(EQ_INT(EVAL.sp, 6));
+}
+
+
+TEST(return_sets_pc_to_saved_addr) {
+    EVAL.sp = 6;
+    /* Create a frame where return addr is 21. */
+    EVAL.stack[EVAL.sp -1] = 0;
+    EVAL.stack[EVAL.sp] = 21;
+
+    n_encode_op_return(CODE, 0);
+    n_evaluator_step(&EVAL, &ERR);
+    ASSERT(IS_OK(ERR));
+    ASSERT(EQ_INT(EVAL.pc, 21));
+}
+
+
+TEST(return_sets_dest_register_value) {
+    EVAL.sp = 10;
+    /* Create a frame where return index is 3. */
+    EVAL.stack[EVAL.sp -1] = 3;
+    EVAL.stack[EVAL.sp] = 0;
+
+    REGISTERS[7] = N_TRUE;
+
+    n_encode_op_return(CODE, 7);
+    n_evaluator_step(&EVAL, &ERR);
+
+    ASSERT(IS_OK(ERR));
+    ASSERT(IS_TRUE(n_eq_values(REGISTERS[3], N_TRUE)));
+}
+
+
 AtTest* tests[] = {
     &load_i16_increments_pc_by_4,
     &load_i16_loads_correct_value,
@@ -343,6 +386,10 @@ AtTest* tests[] = {
     &call_proc_adds_2_to_sp,
 
     &return_halts_on_dummy_frame,
+    &return_decreases_2_from_sp,
+    &return_sets_pc_to_saved_addr,
+    &return_sets_dest_register_value,
+
     NULL
 };
 
