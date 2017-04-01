@@ -2,6 +2,7 @@
 
 #include "values.h"
 #include "primitives.h"
+#include "procedures.h"
 #include "evaluator.h"
 
 #include "../common/opcodes.h"
@@ -80,7 +81,10 @@ void n_evaluator_step(NEvaluator *self, NError *error) {
             self->pc += op_jump_unless(self, stream, error);
             break;
         case N_OP_CALL:
-            self->pc += op_call(self, stream, error);
+            /* Note that this ASSIGNS to the pc instead of ADDING to it.
+             * That is because procedure calls may completely change the
+             * current pc, jumping to the entry point of a user procedure. */
+            self->pc = op_call(self, stream, error);
             break;
         case N_OP_RETURN:
             if (self->stack[self->sp] == -1) {
@@ -143,25 +147,35 @@ nt_construct_evaluator(NEvaluator* self, unsigned char* code, int code_size,
 
 static int
 op_call(NEvaluator *self, unsigned char *stream, NError *error) {
-    NValue arguments[256];
     int i;
     uint8_t dest, target, n_args;
     int size = n_decode_op_call(stream, &dest, &target, &n_args);
-    NValue primitive = self->registers[target];
+    int next_pc = self->pc + size + n_args;
+    NValue callable = self->registers[target];
     NValue result;
 
     for (i = 0; i < n_args; i++) {
         uint8_t arg_index = stream[size + i];
-        arguments[i] = self->registers[arg_index];
+        self->arguments[i] = self->registers[arg_index];
     }
 
-    result = n_call_primitive(primitive, n_args, arguments, error);
-    if (!n_is_ok(error)) {
-        return 0;
-    }
+    if (n_is_primitive(callable)) {
+        result = n_call_primitive(callable, n_args, self->arguments, error);
+        if (!n_is_ok(error)) {
+            return 0;
+        }
 
-    self->registers[dest] = result;
-    return size + n_args;
+        self->registers[dest] = result;
+        return next_pc;
+    }
+    else {
+        /* Set up the new frame and jump to the procedure's entry point. */
+        NProcedure* proc = (NProcedure*) n_unwrap_pointer(callable);
+        self->sp += 2;
+        self->stack[self->sp -1] = dest;
+        self->stack[self->sp] = next_pc;
+        return proc->entry;
+    }
 }
 
 

@@ -8,6 +8,7 @@
 
 #include "eval/evaluator.h"
 #include "eval/primitives.h"
+#include "eval/procedures.h"
 #include "eval/values.h"
 
 
@@ -100,7 +101,7 @@ TEARDOWN(teardown) {
 }
 
 
-TEST(op_load_i16_increments_pc_by_4) {
+TEST(load_i16_increments_pc_by_4) {
     n_encode_op_load_i16(CODE, 0, 0);
     n_evaluator_step(&EVAL, &ERR);
 
@@ -116,7 +117,7 @@ FixnumLoadData load_i16_array[] = {
 };
 AtArrayIterator load_i16_iter = at_static_array_iterator(load_i16_array);
 
-DD_TEST(op_load_i16_loads_correct_value, load_i16_iter, FixnumLoadData, load) {
+DD_TEST(load_i16_loads_correct_value, load_i16_iter, FixnumLoadData, load) {
     uint8_t dest = load->dest;
     NFixnum value = load->value;
     NFixnum result;
@@ -135,7 +136,7 @@ DD_TEST(op_load_i16_loads_correct_value, load_i16_iter, FixnumLoadData, load) {
 int16_t jump_array[] = { -5, 0, 5 };
 AtArrayIterator jump_iter = at_static_array_iterator(jump_array);
 
-DD_TEST(op_jump_adds_offset_to_pc, jump_iter, int16_t, offset) {
+DD_TEST(jump_adds_offset_to_pc, jump_iter, int16_t, offset) {
     EVAL.pc = 32;
     n_encode_op_jump(CODE +32, *offset);
     n_evaluator_step(&EVAL, &ERR);
@@ -144,7 +145,7 @@ DD_TEST(op_jump_adds_offset_to_pc, jump_iter, int16_t, offset) {
 }
 
 
-TEST(op_jump_unless_adds_4_to_pc_on_false) {
+TEST(jump_unless_adds_4_to_pc_on_false) {
     n_encode_op_jump_unless(CODE, 5, 12357);
     REGISTERS[5] = N_FALSE;
 
@@ -156,7 +157,7 @@ TEST(op_jump_unless_adds_4_to_pc_on_false) {
 
 int16_t jump_unless_array[] = { -5, 0, 5 };
 AtArrayIterator jump_unless_iter = at_static_array_iterator(jump_unless_array);
-DD_TEST(op_jump_unless_adds_offset_to_pc, jump_unless_iter, int16_t, offset) {
+DD_TEST(jump_unless_adds_offset_to_pc, jump_unless_iter, int16_t, offset) {
     EVAL.pc = 32;
     REGISTERS[3] = N_TRUE;
     n_encode_op_jump_unless(CODE +32, 3, *offset);
@@ -166,7 +167,7 @@ DD_TEST(op_jump_unless_adds_offset_to_pc, jump_unless_iter, int16_t, offset) {
 }
 
 
-TEST(op_call_adds_4_plus_nargs_to_pc) {
+TEST(call_adds_4_plus_nargs_to_pc) {
     n_encode_op_call(CODE, 0, 1, 5);
     REGISTERS[1] = TRUE_PRIMITIVE;
 
@@ -176,7 +177,94 @@ TEST(op_call_adds_4_plus_nargs_to_pc) {
 }
 
 
-TEST(op_call_calls_primitive_func) {
+TEST(call_proc_sets_pc) {
+    NValue proc = n_create_procedure(17, &ERR);
+    ASSERT(IS_OK(ERR));
+
+    n_encode_op_call(CODE, 0, 1, 0);
+    REGISTERS[1] = proc;
+
+    n_evaluator_step(&EVAL, &ERR);
+    ASSERT(IS_OK(ERR));
+    ASSERT(EQ_INT(EVAL.pc, 17));
+}
+
+
+TEST(call_proc_pushes_ret_index) {
+    NValue proc = n_create_procedure(0, &ERR);
+    ASSERT(IS_OK(ERR));
+
+    n_encode_op_call(CODE, 9, 1, 0);
+    REGISTERS[1] = proc;
+
+    n_evaluator_step(&EVAL, &ERR);
+    ASSERT(IS_OK(ERR));
+    ASSERT(EQ_INT(EVAL.stack[EVAL.sp -1], 9));
+}
+
+
+TEST(call_proc_pushes_ret_addr) {
+    NValue proc = n_create_procedure(0, &ERR);
+    ASSERT(IS_OK(ERR));
+
+    n_encode_op_call(CODE, 9, 1, 3);
+    REGISTERS[1] = proc;
+
+    n_evaluator_step(&EVAL, &ERR);
+    ASSERT(IS_OK(ERR));
+    ASSERT(EQ_INT(EVAL.stack[EVAL.sp], 7));
+}
+
+
+TEST(call_proc_copies_arguments) {
+    NValue proc = n_create_procedure(0, &ERR);
+    ASSERT(IS_OK(ERR));
+
+    n_encode_op_call(CODE, 9, 1, 3);
+    CODE[4] = 7;
+    CODE[5] = 1;
+    CODE[6] = 9;
+
+    REGISTERS[1] = proc;
+
+    REGISTERS[7] = N_TRUE;
+    REGISTERS[1] = N_FALSE;
+    REGISTERS[9] = n_wrap_fixnum(123);
+
+    {
+        int i;
+        for (i = 0; i < 3; i++) {
+            EVAL.arguments[i] = N_UNKNOWN;
+        }
+    }
+
+    n_evaluator_step(&EVAL, &ERR);
+
+    ASSERT(IS_OK(ERR));
+    ASSERT(IS_TRUE(n_eq_values(EVAL.arguments[0], N_TRUE)));
+    ASSERT(IS_TRUE(n_eq_values(EVAL.arguments[1], N_FALSE)));
+    ASSERT(IS_TRUE(n_eq_values(EVAL.arguments[2], n_wrap_fixnum(123))));
+
+}
+
+
+TEST(call_proc_adds_2_to_sp) {
+    NValue proc = n_create_procedure(0, &ERR);
+    int sp_before_step;
+    ASSERT(IS_OK(ERR));
+
+    n_encode_op_call(CODE, 9, 1, 0);
+    REGISTERS[1] = proc;
+
+    sp_before_step = EVAL.sp;
+    n_evaluator_step(&EVAL, &ERR);
+
+    ASSERT(IS_OK(ERR));
+    ASSERT(EQ_INT(EVAL.sp, sp_before_step + 2));
+}
+
+
+TEST(call_calls_primitive_func) {
     n_encode_op_call(CODE, 0, 5, 0);
     FLAG = 0;
     REGISTERS[5] = FLAG_PRIMITIVE;
@@ -186,7 +274,7 @@ TEST(op_call_calls_primitive_func) {
     ASSERT(EQ_INT(FLAG, 1));
 }
 
-TEST(op_call_passes_arguments) {
+TEST(call_passes_arguments) {
     int i;
     n_encode_op_call(CODE, 0, 5, 3);
     CODE[4] = 7;
@@ -211,7 +299,7 @@ TEST(op_call_passes_arguments) {
 }
 
 
-TEST(op_call_stores_returned_value) {
+TEST(call_stores_returned_value) {
     n_encode_op_call(CODE, 14, 1, 0);
     REGISTERS[1] = TRUE_PRIMITIVE;
     REGISTERS[14] = N_UNKNOWN;
@@ -222,7 +310,7 @@ TEST(op_call_stores_returned_value) {
 }
 
 
-TEST(op_return_halts_on_dummy_frame) {
+TEST(return_halts_on_dummy_frame) {
     n_encode_op_nop(CODE);
     n_encode_op_nop(CODE+1);
     n_encode_op_nop(CODE+2);
@@ -236,21 +324,28 @@ TEST(op_return_halts_on_dummy_frame) {
 
 
 AtTest* tests[] = {
-    &op_load_i16_increments_pc_by_4,
-    &op_load_i16_loads_correct_value,
+    &load_i16_increments_pc_by_4,
+    &load_i16_loads_correct_value,
 
-    &op_jump_adds_offset_to_pc,
-    &op_jump_unless_adds_4_to_pc_on_false,
-    &op_jump_unless_adds_offset_to_pc,
+    &jump_adds_offset_to_pc,
+    &jump_unless_adds_4_to_pc_on_false,
+    &jump_unless_adds_offset_to_pc,
 
-    &op_call_adds_4_plus_nargs_to_pc,
-    &op_call_calls_primitive_func,
-    &op_call_passes_arguments,
-    &op_call_stores_returned_value,
+    &call_adds_4_plus_nargs_to_pc,
+    &call_calls_primitive_func,
+    &call_passes_arguments,
+    &call_stores_returned_value,
 
-    &op_return_halts_on_dummy_frame,
+    &call_proc_sets_pc,
+    &call_proc_pushes_ret_index,
+    &call_proc_pushes_ret_addr,
+    &call_proc_copies_arguments,
+    &call_proc_adds_2_to_sp,
+
+    &return_halts_on_dummy_frame,
     NULL
 };
+
 
 
 TEST_RUNNER("BasicOperations", tests, constructor, NULL, setup, teardown)
