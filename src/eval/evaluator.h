@@ -3,7 +3,7 @@
 
 #include <stdlib.h>
 
-#define N_STACK_SIZE 16
+#define N_STACK_SIZE 16384
 #define N_ARGUMENTS_SIZE 64
 
 #include "values.h"
@@ -19,6 +19,7 @@ struct NEvaluator {
 
     int pc;
     int sp;
+    int fp;
     int halted;
 
     NValue arguments[N_ARGUMENTS_SIZE];

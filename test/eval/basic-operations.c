@@ -248,7 +248,7 @@ TEST(call_proc_copies_arguments) {
 }
 
 
-TEST(call_proc_adds_2_to_sp) {
+TEST(call_proc_w_no_locals_adds_3_to_sp) {
     NValue proc = n_create_procedure(0, 0, &ERR);
     int sp_before_step;
     ASSERT(IS_OK(ERR));
@@ -260,7 +260,7 @@ TEST(call_proc_adds_2_to_sp) {
     n_evaluator_step(&EVAL, &ERR);
 
     ASSERT(IS_OK(ERR));
-    ASSERT(EQ_INT(EVAL.sp, sp_before_step + 2));
+    ASSERT(EQ_INT(EVAL.sp, sp_before_step + 3));
 }
 
 
@@ -403,7 +403,7 @@ AtTest* tests[] = {
     &call_proc_pushes_ret_index,
     &call_proc_pushes_ret_addr,
     &call_proc_copies_arguments,
-    &call_proc_adds_2_to_sp,
+    &call_proc_w_no_locals_adds_3_to_sp,
 
     &return_halts_on_dummy_frame,
     &return_decreases_2_from_sp,

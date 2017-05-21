@@ -118,16 +118,21 @@ TEST(get_register_detects_out_of_range) {
 
 
 TEST(sp_starts_on_end_of_dummy_frame) {
-    /* There's two elements on the stack upon construction. */
-    ASSERT(EQ_INT(EVAL.sp, 1));
+    /* There's three elements on the stack upon construction. */
+    ASSERT(EQ_INT(EVAL.sp, 3));
 }
 
 
 TEST(dummy_frame_is_pushed) {
-    ASSERT(EQ_INT(EVAL.stack[0], 0));
-    ASSERT(EQ_INT(EVAL.stack[1], -1));
+    ASSERT(EQ_INT(EVAL.stack[0], -1));
+    ASSERT(EQ_INT(EVAL.stack[1], 0));
+    ASSERT(EQ_INT(EVAL.stack[2], 0));
 }
 
+
+TEST(fp_starts_on_zero) {
+    ASSERT(EQ_INT(EVAL.fp, 0));
+}
 
 AtTest* tests[] = {
     &index_error_is_registered,
@@ -138,6 +143,7 @@ AtTest* tests[] = {
     &get_register_gives_correct_value,
     &get_register_detects_out_of_range,
     &sp_starts_on_end_of_dummy_frame,
+    &fp_starts_on_zero,
     &dummy_frame_is_pushed,
     NULL
 };

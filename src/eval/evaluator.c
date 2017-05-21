@@ -145,10 +145,15 @@ nt_construct_evaluator(NEvaluator* self, unsigned char* code, int code_size,
     self->pc = 0;
     self->stack_size = N_STACK_SIZE;
     self->halted = 0;
-    /* Initialize the dummy frame */
-    self->sp = 1;
-    self->stack[0] = 0;
-    self->stack[1] = -1;
+
+    /* Initialize the dummy frame.
+     * A dummy frame is composed of a frame pointer of -1, followed by two
+     * zeroes: one for the return value register index and another for the
+     * return address. */
+    self->sp = 3;
+    self->stack[0] = -1;
+    self->stack[1] = 0;
+    self->stack[2] = 0;
 }
 #endif /* N_TEST */
 
@@ -178,7 +183,9 @@ op_call(NEvaluator *self, unsigned char *stream, NError *error) {
     else {
         /* Set up the new frame and jump to the procedure's entry point. */
         NProcedure* proc = (NProcedure*) n_unwrap_pointer(callable);
-        self->sp += 2;
+        int previous_sp = self->sp;
+        self->sp += 3;
+        self->stack[self->sp -2] = previous_sp;
         self->stack[self->sp -1] = dest;
         self->stack[self->sp] = next_pc;
         return proc->entry;
@@ -210,7 +217,7 @@ op_jump_unless(NEvaluator *self, unsigned char *stream, NError *error) {
 
 static int
 op_return(NEvaluator *self, unsigned char *stream, NError *error) {
-    if (self->stack[self->sp] == -1) {
+    if (self->stack[self->sp -3] == -1) {
         /* We're on a dummy frame. Halt the machine. */
         self->halted = 1;
         return self->pc;
