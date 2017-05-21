@@ -368,25 +368,46 @@ TEST(return_halts_on_dummy_frame) {
 }
 
 
-TEST(return_decreases_2_from_sp) {
+TEST(return_rolls_sp_to_saved_fp) {
     EVAL.sp = 8;
+    EVAL.fp = 5;
     n_encode_op_return(CODE, 0);
 
-    /* Create a useless frame. */
+    /* Create a useless frame */
+    EVAL.stack[EVAL.sp -3] = 0;
+    EVAL.stack[EVAL.sp -2] = 0;
     EVAL.stack[EVAL.sp -1] = 0;
-    EVAL.stack[EVAL.sp] = 0;
 
     n_evaluator_step(&EVAL, &ERR);
     ASSERT(IS_OK(ERR));
-    ASSERT(EQ_INT(EVAL.sp, 6));
+    ASSERT(EQ_INT(EVAL.sp, 5));
+}
+
+
+TEST(return_restores_saved_fp) {
+    EVAL.sp = 18;
+    EVAL.fp = 15;
+    n_encode_op_return(CODE, 0);
+
+    /* Create a frame with fp = 3 */
+    EVAL.stack[EVAL.sp -3] = 3;
+    EVAL.stack[EVAL.sp -2] = 0;
+    EVAL.stack[EVAL.sp -1] = 0;
+
+    n_evaluator_step(&EVAL, &ERR);
+    ASSERT(IS_OK(ERR));
+    ASSERT(EQ_INT(EVAL.fp, 3));
+
+
 }
 
 
 TEST(return_sets_pc_to_saved_addr) {
     EVAL.sp = 6;
     /* Create a frame where return addr is 21. */
-    EVAL.stack[EVAL.sp -1] = 0;
-    EVAL.stack[EVAL.sp] = 21;
+    EVAL.stack[EVAL.sp -3] = 0;
+    EVAL.stack[EVAL.sp -2] = 0;
+    EVAL.stack[EVAL.sp -1] = 21;
 
     n_encode_op_return(CODE, 0);
     n_evaluator_step(&EVAL, &ERR);
@@ -398,8 +419,9 @@ TEST(return_sets_pc_to_saved_addr) {
 TEST(return_sets_dest_register_value) {
     EVAL.sp = 10;
     /* Create a frame where return index is 3. */
-    EVAL.stack[EVAL.sp -1] = 3;
-    EVAL.stack[EVAL.sp] = 0;
+    EVAL.stack[EVAL.sp -3] = 0;
+    EVAL.stack[EVAL.sp -2] = 3;
+    EVAL.stack[EVAL.sp -1] = 0;
 
     REGISTERS[7] = N_TRUE;
 
@@ -454,9 +476,10 @@ AtTest* tests[] = {
     &call_moves_fp_up_to_previous_sp,
 
     &return_halts_on_dummy_frame,
-    &return_decreases_2_from_sp,
+    &return_rolls_sp_to_saved_fp,
     &return_sets_pc_to_saved_addr,
     &return_sets_dest_register_value,
+    &return_restores_saved_fp,
 
     &arg_ref_copies_values,
     &arg_ref_adds_3_to_pc,

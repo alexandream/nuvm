@@ -225,14 +225,16 @@ op_return(NEvaluator *self, unsigned char *stream, NError *error) {
         return self->pc;
     }
     else {
-        int stored_pc = self->stack[self->sp];
-        int dest = self->stack[self->sp -1];
+        int stored_pc = self->stack[self->sp -1];
+        int dest      = self->stack[self->sp -2];
+        int stored_fp = self->stack[self->sp -3];
         uint8_t src;
 
         n_decode_op_return(stream, &src);
         self->registers[dest] = self->registers[src];
 
-        self->sp -= 2;
+        self->sp = self->fp;
+        self->fp = stored_fp;
         return stored_pc;
     }
 
