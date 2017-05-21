@@ -42,12 +42,12 @@ TEST(procedure_type_is_registered) {
 
 
 TEST(create_with_negative_entry_fails) {
-    n_create_procedure(-1, &ERR);
+    n_create_procedure(-1, 0, &ERR);
     ASSERT(IS_ERROR(ERR, "nuvm.IllegalArgument"));
 }
 
 TEST(is_procedure_detects_procedure) {
-    NValue proc = n_create_procedure(0, &ERR);
+    NValue proc = n_create_procedure(0, 0, &ERR);
     ASSERT(IS_OK(ERR));
     ASSERT(IS_TRUE(n_is_procedure(proc)));
 }
@@ -61,7 +61,7 @@ DD_TEST(is_procedure_rejects_other, other_iter, NValue, value) {
 
 TEST(type_of_procedure_is_correct) {
     NType *proc_type;
-    NValue proc = n_create_procedure(0, &ERR);
+    NValue proc = n_create_procedure(0, 0, &ERR);
 
     ASSERT(IS_OK(ERR));
 
@@ -73,7 +73,7 @@ TEST(type_of_procedure_is_correct) {
 
 
 TEST(create_procedure_sets_entry) {
-    NValue proc = n_create_procedure(12345, &ERR);
+    NValue proc = n_create_procedure(12345, 0, &ERR);
     NProcedure *proc_ptr;
     ASSERT(IS_OK(ERR));
 
@@ -82,6 +82,14 @@ TEST(create_procedure_sets_entry) {
 }
 
 
+TEST(create_procedure_sets_num_locals) {
+    NValue proc = n_create_procedure(12345, 123, &ERR);
+    NProcedure *proc_ptr;
+    ASSERT(IS_OK(ERR));
+
+    proc_ptr = (NProcedure*) n_unwrap_pointer(proc);
+    ASSERT(EQ_UINT(proc_ptr->num_locals, 123));
+}
 
 AtTest* tests[] = {
     &procedure_type_is_registered,
@@ -90,6 +98,7 @@ AtTest* tests[] = {
     &is_procedure_rejects_other,
     &type_of_procedure_is_correct,
     &create_procedure_sets_entry,
+    &create_procedure_sets_num_locals,
     NULL
 };
 

@@ -178,7 +178,7 @@ TEST(call_adds_4_plus_nargs_to_pc) {
 
 
 TEST(call_proc_sets_pc) {
-    NValue proc = n_create_procedure(17, &ERR);
+    NValue proc = n_create_procedure(17, 0, &ERR);
     ASSERT(IS_OK(ERR));
 
     n_encode_op_call(CODE, 0, 1, 0);
@@ -191,7 +191,7 @@ TEST(call_proc_sets_pc) {
 
 
 TEST(call_proc_pushes_ret_index) {
-    NValue proc = n_create_procedure(0, &ERR);
+    NValue proc = n_create_procedure(0, 0, &ERR);
     ASSERT(IS_OK(ERR));
 
     n_encode_op_call(CODE, 9, 1, 0);
@@ -204,7 +204,7 @@ TEST(call_proc_pushes_ret_index) {
 
 
 TEST(call_proc_pushes_ret_addr) {
-    NValue proc = n_create_procedure(0, &ERR);
+    NValue proc = n_create_procedure(0, 0, &ERR);
     ASSERT(IS_OK(ERR));
 
     n_encode_op_call(CODE, 9, 1, 3);
@@ -217,7 +217,7 @@ TEST(call_proc_pushes_ret_addr) {
 
 
 TEST(call_proc_copies_arguments) {
-    NValue proc = n_create_procedure(0, &ERR);
+    NValue proc = n_create_procedure(0, 0, &ERR);
     ASSERT(IS_OK(ERR));
 
     n_encode_op_call(CODE, 9, 1, 3);
@@ -249,7 +249,7 @@ TEST(call_proc_copies_arguments) {
 
 
 TEST(call_proc_adds_2_to_sp) {
-    NValue proc = n_create_procedure(0, &ERR);
+    NValue proc = n_create_procedure(0, 0, &ERR);
     int sp_before_step;
     ASSERT(IS_OK(ERR));
 

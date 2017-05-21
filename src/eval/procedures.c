@@ -41,7 +41,7 @@ ni_init_procedures(void) {
 
 
 NValue
-n_create_procedure(int entry, NError *error) {
+n_create_procedure(int entry, uint8_t num_locals, NError *error) {
     NProcedure* proc_ptr = NULL;
     if (entry < 0) {
         n_set_error(error, ILLEGAL_ARGUMENT,
@@ -56,6 +56,7 @@ n_create_procedure(int entry, NError *error) {
 
     proc_ptr->object_header.type = &_procedure_type;
     proc_ptr->entry = entry;
+    proc_ptr->num_locals = num_locals;
 
     return n_wrap_pointer((NObject*)proc_ptr);
 }
