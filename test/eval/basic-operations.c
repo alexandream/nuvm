@@ -433,6 +433,54 @@ TEST(return_sets_dest_register_value) {
 }
 
 
+TEST(global_ref_adds_4_to_pc) {
+    n_encode_op_global_ref(CODE, 0, 0);
+    n_evaluator_step(&EVAL, &ERR);
+
+    ASSERT(IS_OK(ERR));
+    ASSERT(EQ_INT(EVAL.pc, 4));
+}
+
+
+TEST(global_ref_copies_values) {
+    REGISTERS[9] = N_TRUE;
+
+    /* Create a frame where the third local is N_UNKNOWN */
+    EVAL.fp = 17;
+    EVAL.stack[EVAL.fp +3+2] = N_UNKNOWN;
+
+    n_encode_op_global_ref(CODE, 2, 9);
+    n_evaluator_step(&EVAL, &ERR);
+
+    ASSERT(IS_OK(ERR));
+    ASSERT(IS_TRUE(n_eq_values(EVAL.stack[EVAL.fp +3+2], N_TRUE)));
+}
+
+
+TEST(global_set_adds_4_to_pc) {
+    n_encode_op_global_set(CODE, 0, 0);
+    n_evaluator_step(&EVAL, &ERR);
+
+    ASSERT(IS_OK(ERR));
+    ASSERT(EQ_INT(EVAL.pc, 4));
+}
+
+
+TEST(global_set_copies_values) {
+    REGISTERS[9] = N_UNKNOWN;
+
+    /* Create a frame where the third local is N_UNKNOWN */
+    EVAL.fp = 17;
+    EVAL.stack[EVAL.fp +3+2] = N_TRUE;
+
+    n_encode_op_global_set(CODE, 9, 2);
+    n_evaluator_step(&EVAL, &ERR);
+
+    ASSERT(IS_OK(ERR));
+    ASSERT(IS_TRUE(n_eq_values(REGISTERS[9], N_TRUE)));
+}
+
+
 TEST(arg_ref_adds_3_to_pc) {
     n_encode_op_arg_ref(CODE, 0, 0);
     n_evaluator_step(&EVAL, &ERR);
@@ -452,6 +500,7 @@ TEST(arg_ref_copies_values) {
     ASSERT(IS_OK(ERR));
     ASSERT(IS_TRUE(n_eq_values(REGISTERS[9], N_TRUE)));
 }
+
 
 AtTest* tests[] = {
     &load_i16_increments_pc_by_4,
@@ -480,6 +529,12 @@ AtTest* tests[] = {
     &return_sets_pc_to_saved_addr,
     &return_sets_dest_register_value,
     &return_restores_saved_fp,
+
+    &global_ref_copies_values,
+    &global_ref_adds_4_to_pc,
+
+    &global_set_copies_values,
+    &global_set_adds_4_to_pc,
 
     &arg_ref_copies_values,
     &arg_ref_adds_3_to_pc,

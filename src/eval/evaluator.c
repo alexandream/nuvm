@@ -31,6 +31,12 @@ static int
 op_return(NEvaluator *self, unsigned char *stream, NError *error);
 
 static int
+op_global_ref(NEvaluator *self, unsigned char *stream, NError *error);
+
+static int
+op_global_set(NEvaluator *self, unsigned char *stream, NError *error);
+
+static int
 op_arg_ref(NEvaluator *self, unsigned char *stream, NError *error);
 
 int
@@ -95,6 +101,12 @@ void n_evaluator_step(NEvaluator *self, NError *error) {
         case N_OP_RETURN:
             self->pc = op_return(self, stream, error);
             break;
+        case N_OP_GLOBAL_REF:
+            self->pc += op_global_ref(self, stream, error);
+            break;
+        case N_OP_GLOBAL_SET:
+            self->pc += op_global_set(self, stream, error);
+            break;
         case N_OP_ARG_REF:
             self->pc += op_arg_ref(self, stream, error);
             break;
@@ -156,6 +168,19 @@ nt_construct_evaluator(NEvaluator* self, unsigned char* code, int code_size,
     self->stack[2] = 0;
 }
 #endif /* N_TEST */
+
+
+static NValue
+get_local(NEvaluator *self, uint8_t index) {
+    return self->stack[self->fp + 3 + index];
+}
+
+
+static void
+set_local(NEvaluator *self, uint8_t index, NValue value) {
+    self->stack[self->fp + 3 + index] = value;
+}
+
 
 static int
 op_call(NEvaluator *self, unsigned char *stream, NError *error) {
@@ -238,6 +263,28 @@ op_return(NEvaluator *self, unsigned char *stream, NError *error) {
         return stored_pc;
     }
 
+}
+
+
+static int
+op_global_ref(NEvaluator *self, unsigned char *stream, NError *error) {
+    uint8_t dest;
+    uint16_t source;
+    int size = n_decode_op_global_ref(stream, &dest, &source);
+
+    set_local(self, dest, self->registers[source]);
+    return size;
+}
+
+
+static int
+op_global_set(NEvaluator *self, unsigned char *stream, NError *error) {
+    uint16_t dest;
+    uint8_t source;
+    int size = n_decode_op_global_set(stream, &dest, &source);
+
+    self->registers[dest] = get_local(self, source);
+    return size;
 }
 
 

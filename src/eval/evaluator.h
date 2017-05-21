@@ -24,7 +24,7 @@ struct NEvaluator {
 
     NValue arguments[N_ARGUMENTS_SIZE];
 
-    int stack[N_STACK_SIZE];
+    NValue stack[N_STACK_SIZE];
     int stack_size;
 };
 
