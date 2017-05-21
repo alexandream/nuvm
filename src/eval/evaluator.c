@@ -183,11 +183,13 @@ op_call(NEvaluator *self, unsigned char *stream, NError *error) {
     else {
         /* Set up the new frame and jump to the procedure's entry point. */
         NProcedure* proc = (NProcedure*) n_unwrap_pointer(callable);
-        int previous_sp = self->sp;
-        self->sp += 3;
-        self->stack[self->sp -2] = previous_sp;
-        self->stack[self->sp -1] = dest;
-        self->stack[self->sp] = next_pc;
+        int previous_fp = self->fp;
+        self->fp = self->sp;
+        self->sp += 3;  /* Make space for the new frame. */
+        self->stack[self->sp -3] = previous_fp;
+        self->stack[self->sp -2] = dest;
+        self->stack[self->sp -1] = next_pc;
+        self->sp += proc->num_locals; /* Make space for the locals. */
         return proc->entry;
     }
 }

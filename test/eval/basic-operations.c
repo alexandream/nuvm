@@ -190,6 +190,20 @@ TEST(call_proc_sets_pc) {
 }
 
 
+TEST(call_proc_pushes_frame_pointer) {
+    NValue proc = n_create_procedure(0, 0, &ERR);
+    ASSERT(IS_OK(ERR));
+
+    n_encode_op_call(CODE, 9, 1, 0);
+    REGISTERS[1] = proc;
+
+    EVAL.fp = 12345;
+    n_evaluator_step(&EVAL, &ERR);
+    ASSERT(IS_OK(ERR));
+    ASSERT(EQ_INT(EVAL.stack[EVAL.sp -3], 12345));
+}
+
+
 TEST(call_proc_pushes_ret_index) {
     NValue proc = n_create_procedure(0, 0, &ERR);
     ASSERT(IS_OK(ERR));
@@ -199,7 +213,7 @@ TEST(call_proc_pushes_ret_index) {
 
     n_evaluator_step(&EVAL, &ERR);
     ASSERT(IS_OK(ERR));
-    ASSERT(EQ_INT(EVAL.stack[EVAL.sp -1], 9));
+    ASSERT(EQ_INT(EVAL.stack[EVAL.sp -2], 9));
 }
 
 
@@ -212,7 +226,7 @@ TEST(call_proc_pushes_ret_addr) {
 
     n_evaluator_step(&EVAL, &ERR);
     ASSERT(IS_OK(ERR));
-    ASSERT(EQ_INT(EVAL.stack[EVAL.sp], 7));
+    ASSERT(EQ_INT(EVAL.stack[EVAL.sp-1], 7));
 }
 
 
@@ -264,6 +278,23 @@ TEST(call_proc_w_no_locals_adds_3_to_sp) {
 }
 
 
+TEST(call_proc_adds_3_plus_nlocals_to_sp) {
+    NValue proc = n_create_procedure(0, 8, &ERR);
+    int sp_before_step;
+    ASSERT(IS_OK(ERR));
+
+    n_encode_op_call(CODE, 9, 1, 0);
+    REGISTERS[1] = proc;
+
+    sp_before_step = EVAL.sp;
+    n_evaluator_step(&EVAL, &ERR);
+
+    ASSERT(IS_OK(ERR));
+    ASSERT(EQ_INT(EVAL.sp, sp_before_step + 3 + 8));
+
+}
+
+
 TEST(call_calls_primitive_func) {
     n_encode_op_call(CODE, 0, 5, 0);
     FLAG = 0;
@@ -307,6 +338,20 @@ TEST(call_stores_returned_value) {
     n_evaluator_step(&EVAL, &ERR);
     ASSERT(IS_OK(ERR));
     ASSERT(IS_TRUE(n_eq_values(REGISTERS[14], N_TRUE)));
+}
+
+
+TEST(call_moves_fp_up_to_previous_sp) {
+    int previous_sp = EVAL.sp;
+
+    n_encode_op_call(CODE, 14, 1, 0);
+    REGISTERS[1] = TRUE_PRIMITIVE;
+    REGISTERS[14] = N_UNKNOWN;
+
+    n_evaluator_step(&EVAL, &ERR);
+    ASSERT(IS_OK(ERR));
+    ASSERT(EQ_INT(EVAL.fp, previous_sp));
+
 }
 
 
@@ -400,10 +445,13 @@ AtTest* tests[] = {
     &call_stores_returned_value,
 
     &call_proc_sets_pc,
+    &call_proc_pushes_frame_pointer,
     &call_proc_pushes_ret_index,
     &call_proc_pushes_ret_addr,
     &call_proc_copies_arguments,
     &call_proc_w_no_locals_adds_3_to_sp,
+    &call_proc_adds_3_plus_nlocals_to_sp,
+    &call_moves_fp_up_to_previous_sp,
 
     &return_halts_on_dummy_frame,
     &return_decreases_2_from_sp,
