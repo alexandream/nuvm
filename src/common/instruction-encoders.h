@@ -23,6 +23,12 @@ n_encode_op_call(unsigned char* stream, uint8_t dest, uint8_t target,
                  uint8_t n_args);
 
 int
+n_encode_op_global_ref(unsigned char* stream, uint8_t dest, uint16_t source);
+
+int
+n_encode_op_global_set(unsigned char* stream, uint16_t dest, uint8_t source);
+
+int
 n_encode_op_arg_ref(unsigned char* stream, uint8_t dest, uint8_t source);
 
 int

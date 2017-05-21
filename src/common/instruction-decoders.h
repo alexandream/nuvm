@@ -42,6 +42,26 @@ n_decode_op_call(unsigned char* stream, uint8_t *dest, uint8_t *target,
 
 
 int
+n_decode_op_global_ref(unsigned char* stream, uint8_t* dest, uint16_t* source) {
+    unsigned char* source_bytes = (unsigned char*) source;
+    *dest = stream[1];
+    source_bytes[0] = stream[3];
+    source_bytes[1] = stream[2];
+    return 4;
+}
+
+
+int
+n_decode_op_global_set(unsigned char* stream, uint16_t* dest, uint8_t* source) {
+    unsigned char* dest_bytes = (unsigned char*) dest;
+    dest_bytes[0] = stream[2];
+    dest_bytes[1] = stream[1];
+    *source = stream[3];
+    return 4;
+}
+
+
+int
 n_decode_op_arg_ref(unsigned char* stream, uint8_t* dest, uint8_t* source) {
     *dest = stream[1];
     *source = stream[2];

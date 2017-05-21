@@ -191,13 +191,91 @@ TEST(decode_call_reverts_encode) {
     uint8_t d_target;
     uint8_t n_args = 5;
     uint8_t d_n_args;
-    
+
     n_encode_op_call(BUFFER, dest, target, n_args);
     n_decode_op_call(BUFFER, &d_dest, &d_target, &d_n_args);
 
     ASSERT(EQ_UINT(dest, d_dest));
     ASSERT(EQ_UINT(target, d_target));
     ASSERT(EQ_UINT(n_args, d_n_args));
+}
+
+
+TEST(encode_global_ref_has_right_opcode) {
+    n_encode_op_global_ref(BUFFER, 0, 0);
+
+    ASSERT(EQ_UINT(BUFFER[0], N_OP_GLOBAL_REF));
+}
+
+
+TEST(encode_global_ref_uses_four_bytes) {
+    /* The opcode and arguments are irrelevant to this test. */
+    int used_bytes = n_encode_op_global_ref(BUFFER, 0, 0);
+
+    ASSERT(EQ_INT(used_bytes, 4));
+}
+
+
+TEST(decode_global_ref_uses_four_bytes) {
+    uint8_t dst;
+    uint16_t src;
+    /* The opcode and arguments are irrelevant to this test. */
+    int used_bytes = n_decode_op_global_ref(BUFFER, &dst, &src);
+
+    ASSERT(EQ_INT(used_bytes, 4));
+}
+
+
+TEST(decode_global_ref_reverts_encode) {
+    uint8_t dst = 0x12;
+    uint16_t src = 0x3456;
+    uint8_t d_dst;
+    uint16_t d_src;
+
+    n_encode_op_global_ref(BUFFER, dst, src);
+    n_decode_op_global_ref(BUFFER, &d_dst, &d_src);
+
+    ASSERT(EQ_UINT(d_dst, dst));
+    ASSERT(EQ_UINT(d_src, src));
+}
+
+
+TEST(encode_global_set_has_right_opcode) {
+    n_encode_op_global_set(BUFFER, 0, 0);
+
+    ASSERT(EQ_UINT(BUFFER[0], N_OP_GLOBAL_SET));
+}
+
+
+TEST(encode_global_set_uses_four_bytes) {
+    /* The opcode and arguments are irrelevant to this test. */
+    int used_bytes = n_encode_op_global_set(BUFFER, 0, 0);
+
+    ASSERT(EQ_INT(used_bytes, 4));
+}
+
+
+TEST(decode_global_set_uses_four_bytes) {
+    uint16_t dst;
+    uint8_t src;
+    /* The opcode and arguments are irrelevant to this test. */
+    int used_bytes = n_decode_op_global_set(BUFFER, &dst, &src);
+
+    ASSERT(EQ_INT(used_bytes, 4));
+}
+
+
+TEST(decode_global_set_reverts_encode) {
+    uint16_t dst = 0x1234;
+    uint8_t src = 0x56;
+    uint16_t d_dst;
+    uint8_t d_src;
+
+    n_encode_op_global_set(BUFFER, dst, src);
+    n_decode_op_global_set(BUFFER, &d_dst, &d_src);
+
+    ASSERT(EQ_UINT(d_dst, dst));
+    ASSERT(EQ_UINT(d_src, src));
 }
 
 
@@ -303,6 +381,16 @@ AtTest* tests[] = {
     &encode_call_uses_four_bytes,
     &decode_call_uses_four_bytes,
     &decode_call_reverts_encode,
+
+    &encode_global_ref_has_right_opcode,
+    &encode_global_ref_uses_four_bytes,
+    &decode_global_ref_uses_four_bytes,
+    &decode_global_ref_reverts_encode,
+
+    &encode_global_set_has_right_opcode,
+    &encode_global_set_uses_four_bytes,
+    &decode_global_set_uses_four_bytes,
+    &decode_global_set_reverts_encode,
 
     &encode_arg_ref_has_right_opcode,
     &encode_arg_ref_uses_three_bytes,
