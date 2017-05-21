@@ -18,6 +18,12 @@ NErrorType UNKNOWN_OPCODE  =  { "nuvm.UnknownOpcode", NULL };
 static
 NErrorType *ILLEGAL_ARGUMENT = NULL;
 
+static NValue
+get_local(NEvaluator *self, uint8_t index);
+
+static void
+set_local(NEvaluator *self, uint8_t index, NValue value);
+
 static int
 op_jump_unless(NEvaluator *self, unsigned char *stream, NError *error);
 
@@ -35,9 +41,6 @@ op_global_ref(NEvaluator *self, unsigned char *stream, NError *error);
 
 static int
 op_global_set(NEvaluator *self, unsigned char *stream, NError *error);
-
-static int
-op_arg_ref(NEvaluator *self, unsigned char *stream, NError *error);
 
 int
 ni_init_evaluator(void) {
@@ -107,9 +110,6 @@ void n_evaluator_step(NEvaluator *self, NError *error) {
         case N_OP_GLOBAL_SET:
             self->pc += op_global_set(self, stream, error);
             break;
-        case N_OP_ARG_REF:
-            self->pc += op_arg_ref(self, stream, error);
-            break;
         default: {
             self->halted = 1;
             n_set_error(error, &UNKNOWN_OPCODE, "Found an unknown opcode.",
@@ -145,6 +145,18 @@ n_evaluator_get_register(NEvaluator *self, int index, NError *error) {
 }
 
 
+NValue
+n_evaluator_get_local(NEvaluator *self, int index, NError *error) {
+    return get_local(self, index);
+}
+
+
+void
+n_evaluator_set_local(NEvaluator *self, int index, NValue val, NError *error) {
+    set_local(self, index, val);
+}
+
+
 #ifdef N_TEST
 void
 nt_construct_evaluator(NEvaluator* self, unsigned char* code, int code_size,
@@ -163,6 +175,7 @@ nt_construct_evaluator(NEvaluator* self, unsigned char* code, int code_size,
      * zeroes: one for the return value register index and another for the
      * return address. */
     self->sp = 3;
+    self->fp = 0;
     self->stack[0] = -1;
     self->stack[1] = 0;
     self->stack[2] = 0;
@@ -188,12 +201,12 @@ op_call(NEvaluator *self, unsigned char *stream, NError *error) {
     uint8_t dest, target, n_args;
     int size = n_decode_op_call(stream, &dest, &target, &n_args);
     int next_pc = self->pc + size + n_args;
-    NValue callable = self->registers[target];
+    NValue callable = get_local(self, target);
     NValue result;
 
     for (i = 0; i < n_args; i++) {
         uint8_t arg_index = stream[size + i];
-        self->arguments[i] = self->registers[arg_index];
+        self->arguments[i] = get_local(self, arg_index);
     }
 
     if (n_is_primitive(callable)) {
@@ -202,7 +215,7 @@ op_call(NEvaluator *self, unsigned char *stream, NError *error) {
             return 0;
         }
 
-        self->registers[dest] = result;
+        set_local(self, dest, result);
         return next_pc;
     }
     else {
@@ -210,11 +223,10 @@ op_call(NEvaluator *self, unsigned char *stream, NError *error) {
         NProcedure* proc = (NProcedure*) n_unwrap_pointer(callable);
         int previous_fp = self->fp;
         self->fp = self->sp;
-        self->sp += 3;  /* Make space for the new frame. */
-        self->stack[self->sp -3] = previous_fp;
-        self->stack[self->sp -2] = dest;
-        self->stack[self->sp -1] = next_pc;
-        self->sp += proc->num_locals; /* Make space for the locals. */
+        self->stack[self->fp] = previous_fp;
+        self->stack[self->fp +1] = dest;
+        self->stack[self->fp +2] = next_pc;
+        self->sp += 3 + proc->num_locals; /* Make space for the locals. */
         return proc->entry;
     }
 }
@@ -225,7 +237,7 @@ op_jump_unless(NEvaluator *self, unsigned char *stream, NError *error) {
     uint8_t r_condition;
     int16_t offset;
     int size = n_decode_op_jump_unless(stream, &r_condition, &offset);
-    NValue condition = self->registers[r_condition];
+    NValue condition = get_local(self, r_condition);
 
     if (n_eq_values(condition, N_TRUE)) {
         return offset;
@@ -244,22 +256,26 @@ op_jump_unless(NEvaluator *self, unsigned char *stream, NError *error) {
 
 static int
 op_return(NEvaluator *self, unsigned char *stream, NError *error) {
-    if (self->stack[self->sp -3] == -1) {
+    if (self->stack[self->fp] == -1) {
         /* We're on a dummy frame. Halt the machine. */
         self->halted = 1;
         return self->pc;
     }
     else {
-        int stored_pc = self->stack[self->sp -1];
-        int dest      = self->stack[self->sp -2];
-        int stored_fp = self->stack[self->sp -3];
+        int stored_pc = self->stack[self->fp +2];
+        int dest      = self->stack[self->fp +1];
+        int stored_fp = self->stack[self->fp];
         uint8_t src;
+        NValue return_value;
 
         n_decode_op_return(stream, &src);
-        self->registers[dest] = self->registers[src];
+
+        return_value = get_local(self, src);
 
         self->sp = self->fp;
         self->fp = stored_fp;
+        set_local(self, dest, return_value);
+
         return stored_pc;
     }
 
@@ -289,22 +305,11 @@ op_global_set(NEvaluator *self, unsigned char *stream, NError *error) {
 
 
 static int
-op_arg_ref(NEvaluator *self, unsigned char *stream, NError *error) {
-    uint8_t dest;
-    uint8_t source;
-    int size = n_decode_op_arg_ref(stream, &dest, &source);
-
-    self->registers[dest] = self->arguments[source];
-    return size;
-}
-
-
-static int
 op_load_i16(NEvaluator *self, unsigned char *stream, NError *error) {
     uint8_t dest;
     int16_t value;
     int size = n_decode_op_load_i16(stream, &dest, &value);
 
-    self->registers[dest] = n_wrap_fixnum(value);
+    set_local(self, dest, n_wrap_fixnum(value));
     return size;
 }

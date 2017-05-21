@@ -62,14 +62,6 @@ n_decode_op_global_set(unsigned char* stream, uint16_t* dest, uint8_t* source) {
 
 
 int
-n_decode_op_arg_ref(unsigned char* stream, uint8_t* dest, uint8_t* source) {
-    *dest = stream[1];
-    *source = stream[2];
-    return 3;
-}
-
-
-int
 n_decode_op_return(unsigned char* stream, uint8_t* source) {
     *source = stream[1];
     return 2;

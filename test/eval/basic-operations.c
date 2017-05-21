@@ -92,6 +92,8 @@ SETUP(setup) {
         REGISTERS[i] = n_wrap_fixnum(0);
     }
     nt_construct_evaluator(&EVAL, CODE, CODE_SIZE, REGISTERS, NUM_REGISTERS);
+    /* Make room for some locals. */
+    EVAL.sp += 16;
     ERR = n_error_ok();
 }
 
@@ -126,7 +128,7 @@ DD_TEST(load_i16_loads_correct_value, load_i16_iter, FixnumLoadData, load) {
     n_evaluator_step(&EVAL, &ERR);
     ASSERT(IS_OK(ERR));
 
-    result = n_unwrap_fixnum(n_evaluator_get_register(&EVAL, dest, &ERR));
+    result = n_unwrap_fixnum(n_evaluator_get_local(&EVAL, dest, &ERR));
     ASSERT(IS_OK(ERR));
 
     ASSERT(EQ_INT(result, value));
@@ -147,7 +149,7 @@ DD_TEST(jump_adds_offset_to_pc, jump_iter, int16_t, offset) {
 
 TEST(jump_unless_adds_4_to_pc_on_false) {
     n_encode_op_jump_unless(CODE, 5, 12357);
-    REGISTERS[5] = N_FALSE;
+    n_evaluator_set_local(&EVAL, 5, N_FALSE, &ERR);
 
     n_evaluator_step(&EVAL, &ERR);
     ASSERT(IS_OK(ERR));
@@ -159,7 +161,7 @@ int16_t jump_unless_array[] = { -5, 0, 5 };
 AtArrayIterator jump_unless_iter = at_static_array_iterator(jump_unless_array);
 DD_TEST(jump_unless_adds_offset_to_pc, jump_unless_iter, int16_t, offset) {
     EVAL.pc = 32;
-    REGISTERS[3] = N_TRUE;
+    n_evaluator_set_local(&EVAL, 3, N_TRUE, &ERR);
     n_encode_op_jump_unless(CODE +32, 3, *offset);
     n_evaluator_step(&EVAL, &ERR);
     ASSERT(IS_OK(ERR));
@@ -169,7 +171,7 @@ DD_TEST(jump_unless_adds_offset_to_pc, jump_unless_iter, int16_t, offset) {
 
 TEST(call_adds_4_plus_nargs_to_pc) {
     n_encode_op_call(CODE, 0, 1, 5);
-    REGISTERS[1] = TRUE_PRIMITIVE;
+    n_evaluator_set_local(&EVAL, 1, TRUE_PRIMITIVE, &ERR);
 
     n_evaluator_step(&EVAL, &ERR);
     ASSERT(IS_OK(ERR));
@@ -182,7 +184,7 @@ TEST(call_proc_sets_pc) {
     ASSERT(IS_OK(ERR));
 
     n_encode_op_call(CODE, 0, 1, 0);
-    REGISTERS[1] = proc;
+    n_evaluator_set_local(&EVAL, 1, proc, &ERR);
 
     n_evaluator_step(&EVAL, &ERR);
     ASSERT(IS_OK(ERR));
@@ -194,11 +196,12 @@ TEST(call_proc_pushes_frame_pointer) {
     NValue proc = n_create_procedure(0, 0, &ERR);
     ASSERT(IS_OK(ERR));
 
-    n_encode_op_call(CODE, 9, 1, 0);
-    REGISTERS[1] = proc;
-
     EVAL.fp = 12345;
+
+    n_encode_op_call(CODE, 9, 1, 0);
+    n_evaluator_set_local(&EVAL, 1, proc, &ERR);
     n_evaluator_step(&EVAL, &ERR);
+
     ASSERT(IS_OK(ERR));
     ASSERT(EQ_INT(EVAL.stack[EVAL.sp -3], 12345));
 }
@@ -209,7 +212,7 @@ TEST(call_proc_pushes_ret_index) {
     ASSERT(IS_OK(ERR));
 
     n_encode_op_call(CODE, 9, 1, 0);
-    REGISTERS[1] = proc;
+    n_evaluator_set_local(&EVAL, 1, proc, &ERR);
 
     n_evaluator_step(&EVAL, &ERR);
     ASSERT(IS_OK(ERR));
@@ -222,7 +225,7 @@ TEST(call_proc_pushes_ret_addr) {
     ASSERT(IS_OK(ERR));
 
     n_encode_op_call(CODE, 9, 1, 3);
-    REGISTERS[1] = proc;
+    n_evaluator_set_local(&EVAL, 1, proc, &ERR);
 
     n_evaluator_step(&EVAL, &ERR);
     ASSERT(IS_OK(ERR));
@@ -239,11 +242,11 @@ TEST(call_proc_copies_arguments) {
     CODE[5] = 1;
     CODE[6] = 9;
 
-    REGISTERS[1] = proc;
+    n_evaluator_set_local(&EVAL, 1, proc, &ERR);
 
-    REGISTERS[7] = N_TRUE;
-    REGISTERS[1] = N_FALSE;
-    REGISTERS[9] = n_wrap_fixnum(123);
+    n_evaluator_set_local(&EVAL, 7, N_TRUE, &ERR);
+    n_evaluator_set_local(&EVAL, 1, N_FALSE, &ERR);
+    n_evaluator_set_local(&EVAL, 9, n_wrap_fixnum(123), &ERR);
 
     {
         int i;
@@ -268,7 +271,7 @@ TEST(call_proc_w_no_locals_adds_3_to_sp) {
     ASSERT(IS_OK(ERR));
 
     n_encode_op_call(CODE, 9, 1, 0);
-    REGISTERS[1] = proc;
+    n_evaluator_set_local(&EVAL, 1, proc, &ERR);
 
     sp_before_step = EVAL.sp;
     n_evaluator_step(&EVAL, &ERR);
@@ -284,7 +287,7 @@ TEST(call_proc_adds_3_plus_nlocals_to_sp) {
     ASSERT(IS_OK(ERR));
 
     n_encode_op_call(CODE, 9, 1, 0);
-    REGISTERS[1] = proc;
+    n_evaluator_set_local(&EVAL, 1, proc, &ERR);
 
     sp_before_step = EVAL.sp;
     n_evaluator_step(&EVAL, &ERR);
@@ -298,7 +301,7 @@ TEST(call_proc_adds_3_plus_nlocals_to_sp) {
 TEST(call_calls_primitive_func) {
     n_encode_op_call(CODE, 0, 5, 0);
     FLAG = 0;
-    REGISTERS[5] = FLAG_PRIMITIVE;
+    n_evaluator_set_local(&EVAL, 5, FLAG_PRIMITIVE, &ERR);
 
     n_evaluator_step(&EVAL, &ERR);
     ASSERT(IS_OK(ERR));
@@ -316,10 +319,10 @@ TEST(call_passes_arguments) {
         COPY_RESULT[i] = N_UNKNOWN;
     }
 
-    REGISTERS[5] = COPY_PRIMITIVE;
-    REGISTERS[7] = N_TRUE;
-    REGISTERS[1] = N_FALSE;
-    REGISTERS[9] = n_wrap_fixnum(123);
+    n_evaluator_set_local(&EVAL, 5, COPY_PRIMITIVE, &ERR);
+    n_evaluator_set_local(&EVAL, 7, N_TRUE, &ERR);
+    n_evaluator_set_local(&EVAL, 1, N_FALSE, &ERR);
+    n_evaluator_set_local(&EVAL, 9, n_wrap_fixnum(123), &ERR);
 
     n_evaluator_step(&EVAL, &ERR);
     ASSERT(IS_OK(ERR));
@@ -332,21 +335,20 @@ TEST(call_passes_arguments) {
 
 TEST(call_stores_returned_value) {
     n_encode_op_call(CODE, 14, 1, 0);
-    REGISTERS[1] = TRUE_PRIMITIVE;
-    REGISTERS[14] = N_UNKNOWN;
+    n_evaluator_set_local(&EVAL, 1, TRUE_PRIMITIVE, &ERR);
+    n_evaluator_set_local(&EVAL, 14, N_UNKNOWN, &ERR);
 
     n_evaluator_step(&EVAL, &ERR);
     ASSERT(IS_OK(ERR));
-    ASSERT(IS_TRUE(n_eq_values(REGISTERS[14], N_TRUE)));
+    ASSERT(IS_TRUE(n_eq_values(n_evaluator_get_local(&EVAL, 14, &ERR), N_TRUE)));
 }
 
 
 TEST(call_moves_fp_up_to_previous_sp) {
     int previous_sp = EVAL.sp;
-
-    n_encode_op_call(CODE, 14, 1, 0);
-    REGISTERS[1] = TRUE_PRIMITIVE;
-    REGISTERS[14] = N_UNKNOWN;
+    NValue proc = n_create_procedure(0, 0, &ERR);
+    n_encode_op_call(CODE, 0, 1, 0);
+    n_evaluator_set_local(&EVAL, 1, proc, &ERR);
 
     n_evaluator_step(&EVAL, &ERR);
     ASSERT(IS_OK(ERR));
@@ -404,10 +406,11 @@ TEST(return_restores_saved_fp) {
 
 TEST(return_sets_pc_to_saved_addr) {
     EVAL.sp = 6;
+    EVAL.fp = 3;
     /* Create a frame where return addr is 21. */
-    EVAL.stack[EVAL.sp -3] = 0;
-    EVAL.stack[EVAL.sp -2] = 0;
-    EVAL.stack[EVAL.sp -1] = 21;
+    EVAL.stack[EVAL.fp] = 0;
+    EVAL.stack[EVAL.fp +1] = 0;
+    EVAL.stack[EVAL.fp +2] = 21;
 
     n_encode_op_return(CODE, 0);
     n_evaluator_step(&EVAL, &ERR);
@@ -418,18 +421,19 @@ TEST(return_sets_pc_to_saved_addr) {
 
 TEST(return_sets_dest_register_value) {
     EVAL.sp = 10;
+    EVAL.fp = 7;
     /* Create a frame where return index is 3. */
-    EVAL.stack[EVAL.sp -3] = 0;
-    EVAL.stack[EVAL.sp -2] = 3;
-    EVAL.stack[EVAL.sp -1] = 0;
+    EVAL.stack[EVAL.fp] = 0;
+    EVAL.stack[EVAL.fp +1] = 3;
+    EVAL.stack[EVAL.fp +2] = 0;
 
-    REGISTERS[7] = N_TRUE;
+    n_evaluator_set_local(&EVAL, 7, N_TRUE, &ERR);
 
     n_encode_op_return(CODE, 7);
     n_evaluator_step(&EVAL, &ERR);
 
     ASSERT(IS_OK(ERR));
-    ASSERT(IS_TRUE(n_eq_values(REGISTERS[3], N_TRUE)));
+    ASSERT(IS_TRUE(n_eq_values(n_evaluator_get_local(&EVAL, 3, &ERR), N_TRUE)));
 }
 
 
@@ -467,7 +471,7 @@ TEST(global_set_adds_4_to_pc) {
 
 
 TEST(global_set_copies_values) {
-    REGISTERS[9] = N_UNKNOWN;
+    REGISTERS[9] =  N_UNKNOWN;
 
     /* Create a frame where the third local is N_UNKNOWN */
     EVAL.fp = 17;
@@ -477,29 +481,13 @@ TEST(global_set_copies_values) {
     n_evaluator_step(&EVAL, &ERR);
 
     ASSERT(IS_OK(ERR));
-    ASSERT(IS_TRUE(n_eq_values(REGISTERS[9], N_TRUE)));
+    {
+        NValue result = n_evaluator_get_register(&EVAL, 9, &ERR);
+        ASSERT(IS_OK(ERR));
+        ASSERT(IS_TRUE(n_eq_values(result, N_TRUE)));
+    }
 }
 
-
-TEST(arg_ref_adds_3_to_pc) {
-    n_encode_op_arg_ref(CODE, 0, 0);
-    n_evaluator_step(&EVAL, &ERR);
-
-    ASSERT(IS_OK(ERR));
-    ASSERT(EQ_INT(EVAL.pc, 3));
-}
-
-
-TEST(arg_ref_copies_values) {
-    EVAL.arguments[5] = N_TRUE;
-    REGISTERS[9] = N_UNKNOWN;
-
-    n_encode_op_arg_ref(CODE, 9, 5);
-    n_evaluator_step(&EVAL, &ERR);
-
-    ASSERT(IS_OK(ERR));
-    ASSERT(IS_TRUE(n_eq_values(REGISTERS[9], N_TRUE)));
-}
 
 
 AtTest* tests[] = {
@@ -535,9 +523,6 @@ AtTest* tests[] = {
 
     &global_set_copies_values,
     &global_set_adds_4_to_pc,
-
-    &arg_ref_copies_values,
-    &arg_ref_adds_3_to_pc,
 
     NULL
 };

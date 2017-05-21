@@ -39,6 +39,12 @@ void n_evaluator_run(NEvaluator *self, NError *error);
 NValue
 n_evaluator_get_register(NEvaluator *self, int index, NError *error);
 
+NValue
+n_evaluator_get_local(NEvaluator *self, int index, NError *error);
+
+void
+n_evaluator_set_local(NEvaluator *self, int index, NValue value, NError *error);
+
 #ifdef N_TEST
 void
 nt_construct_evaluator(NEvaluator* self, unsigned char* code, int code_size,

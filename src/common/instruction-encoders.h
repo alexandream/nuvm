@@ -29,8 +29,5 @@ int
 n_encode_op_global_set(unsigned char* stream, uint16_t dest, uint8_t source);
 
 int
-n_encode_op_arg_ref(unsigned char* stream, uint8_t dest, uint8_t source);
-
-int
 n_encode_op_return(unsigned char* stream, uint8_t source);
 #endif /* N_C_INSTRUCTION_ENCODING_H*/

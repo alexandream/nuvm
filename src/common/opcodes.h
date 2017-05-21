@@ -10,6 +10,5 @@
 #define N_OP_RETURN      0x06
 #define N_OP_GLOBAL_REF  0x07
 #define N_OP_GLOBAL_SET  0x08
-#define N_OP_ARG_REF     0x09
 
 #endif /* N_C_OPCODES_H */
