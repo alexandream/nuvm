@@ -182,16 +182,22 @@ nt_construct_evaluator(NEvaluator* self, unsigned char* code, int code_size,
 }
 #endif /* N_TEST */
 
+static NValue*
+get_locals_addr(NEvaluator *self) {
+    return self->stack + self->fp + 3;
+}
+
 
 static NValue
 get_local(NEvaluator *self, uint8_t index) {
-    return self->stack[self->fp + 3 + index];
+    return get_locals_addr(self)[index];
 }
 
 
 static void
 set_local(NEvaluator *self, uint8_t index, NValue value) {
-    self->stack[self->fp + 3 + index] = value;
+    NValue* locals = get_locals_addr(self);
+    locals[index] = value;
 }
 
 
@@ -204,12 +210,12 @@ op_call(NEvaluator *self, unsigned char *stream, NError *error) {
     NValue callable = get_local(self, target);
     NValue result;
 
-    for (i = 0; i < n_args; i++) {
-        uint8_t arg_index = stream[size + i];
-        self->arguments[i] = get_local(self, arg_index);
-    }
-
     if (n_is_primitive(callable)) {
+        for (i = 0; i < n_args; i++) {
+            uint8_t arg_index = stream[size + i];
+            self->arguments[i] = get_local(self, arg_index);
+        }
+
         result = n_call_primitive(callable, n_args, self->arguments, error);
         if (!n_is_ok(error)) {
             return 0;
@@ -218,17 +224,30 @@ op_call(NEvaluator *self, unsigned char *stream, NError *error) {
         set_local(self, dest, result);
         return next_pc;
     }
-    else {
+    else if (n_is_procedure(callable)) {
         /* Set up the new frame and jump to the procedure's entry point. */
         NProcedure* proc = (NProcedure*) n_unwrap_pointer(callable);
         int previous_fp = self->fp;
+        NValue* old_locals = get_locals_addr(self);
         self->fp = self->sp;
         self->stack[self->fp] = previous_fp;
         self->stack[self->fp +1] = dest;
         self->stack[self->fp +2] = next_pc;
-        self->sp += 3 + proc->num_locals; /* Make space for the locals. */
+        /* Make space for the saved registers, locals and arguments. */
+        self->sp += 3 + proc->num_locals + n_args;
+        for (i = 0; i < n_args; i++) {
+            uint8_t arg_index = stream[size + i];
+            set_local(self, proc->num_locals + i, old_locals[arg_index]);
+        }
         return proc->entry;
     }
+    else {
+        n_set_error(error, ILLEGAL_ARGUMENT, "Target to call instruction "
+                    "must be a callable object.",
+                    NULL, NULL);
+        return self->pc;
+    }
+
 }
 
 

@@ -120,6 +120,9 @@ n_is_pointer(NValue value) {
 
 NType*
 n_type_of(NValue value) {
+    if (n_is_fixnum(value)) {
+        return &_fixnum_type;
+    }
     return n_unwrap_pointer(value)->type;
 }
 

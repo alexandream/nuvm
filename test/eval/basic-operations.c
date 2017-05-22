@@ -91,7 +91,11 @@ SETUP(setup) {
     for (i = 0; i < NUM_REGISTERS; i++) {
         REGISTERS[i] = n_wrap_fixnum(0);
     }
+
     nt_construct_evaluator(&EVAL, CODE, CODE_SIZE, REGISTERS, NUM_REGISTERS);
+    for (i = 0; i < N_ARGUMENTS_SIZE; i++) {
+        EVAL.arguments[i] = N_UNKNOWN;
+    }
     /* Make room for some locals. */
     EVAL.sp += 16;
     ERR = n_error_ok();
@@ -216,7 +220,7 @@ TEST(call_proc_pushes_ret_index) {
 
     n_evaluator_step(&EVAL, &ERR);
     ASSERT(IS_OK(ERR));
-    ASSERT(EQ_INT(EVAL.stack[EVAL.sp -2], 9));
+    ASSERT(EQ_INT(EVAL.stack[EVAL.fp +1], 9));
 }
 
 
@@ -229,38 +233,39 @@ TEST(call_proc_pushes_ret_addr) {
 
     n_evaluator_step(&EVAL, &ERR);
     ASSERT(IS_OK(ERR));
-    ASSERT(EQ_INT(EVAL.stack[EVAL.sp-1], 7));
+    ASSERT(EQ_INT(EVAL.stack[EVAL.fp+2], 7));
 }
 
 
-TEST(call_proc_copies_arguments) {
+TEST(call_proc_pushes_arguments) {
     NValue proc = n_create_procedure(0, 0, &ERR);
+    fprintf(stderr,"BEGIN\n");
     ASSERT(IS_OK(ERR));
 
     n_encode_op_call(CODE, 9, 1, 3);
     CODE[4] = 7;
-    CODE[5] = 1;
+    CODE[5] = 3;
     CODE[6] = 9;
 
     n_evaluator_set_local(&EVAL, 1, proc, &ERR);
 
     n_evaluator_set_local(&EVAL, 7, N_TRUE, &ERR);
-    n_evaluator_set_local(&EVAL, 1, N_FALSE, &ERR);
+    n_evaluator_set_local(&EVAL, 3, N_FALSE, &ERR);
     n_evaluator_set_local(&EVAL, 9, n_wrap_fixnum(123), &ERR);
-
-    {
-        int i;
-        for (i = 0; i < 3; i++) {
-            EVAL.arguments[i] = N_UNKNOWN;
-        }
-    }
 
     n_evaluator_step(&EVAL, &ERR);
 
     ASSERT(IS_OK(ERR));
-    ASSERT(IS_TRUE(n_eq_values(EVAL.arguments[0], N_TRUE)));
-    ASSERT(IS_TRUE(n_eq_values(EVAL.arguments[1], N_FALSE)));
-    ASSERT(IS_TRUE(n_eq_values(EVAL.arguments[2], n_wrap_fixnum(123))));
+    ASSERT(IS_TRUE(n_eq_values(n_evaluator_get_local(&EVAL, 0, &ERR),
+                               N_TRUE)));
+    ASSERT(IS_OK(ERR));
+    ASSERT(IS_TRUE(n_eq_values(n_evaluator_get_local(&EVAL, 1, &ERR),
+                               N_FALSE)));
+    ASSERT(IS_OK(ERR));
+    ASSERT(IS_TRUE(n_eq_values(n_evaluator_get_local(&EVAL, 2, &ERR),
+                               n_wrap_fixnum(123))));
+    ASSERT(IS_OK(ERR));
+    fprintf(stderr,"END\n");
 
 }
 
@@ -507,7 +512,7 @@ AtTest* tests[] = {
     &call_proc_pushes_frame_pointer,
     &call_proc_pushes_ret_index,
     &call_proc_pushes_ret_addr,
-    &call_proc_copies_arguments,
+    &call_proc_pushes_arguments,
     &call_proc_w_no_locals_adds_3_to_sp,
     &call_proc_adds_3_plus_nlocals_to_sp,
     &call_moves_fp_up_to_previous_sp,
