@@ -24,10 +24,20 @@ NValue REGISTERS[NUM_REGISTERS];
 static
 NEvaluator EVAL;
 
+static
+NModule *MOD;
+
 
 CONSTRUCTOR(constructor) {
+    NError error = n_error_ok();
+
     if (ni_init_evaluator() < 0) {
         ERROR("Can't initialize evaluator module.", NULL);
+    }
+
+    MOD = n_new_module(&error);
+    if (!n_is_ok(&error)) {
+        ERROR("Can't create module.", NULL);
     }
 }
 
@@ -41,7 +51,14 @@ SETUP(setup) {
     for (i = 0; i < NUM_REGISTERS; i++) {
         REGISTERS[i] = n_wrap_fixnum(0);
     }
-    nt_construct_evaluator(&EVAL, CODE, CODE_SIZE, REGISTERS, NUM_REGISTERS);
+    nt_construct_evaluator(&EVAL);
+
+    MOD->code = CODE;
+    MOD->code_size = CODE_SIZE;
+    MOD->registers = REGISTERS;
+    MOD->num_registers = NUM_REGISTERS;
+
+    EVAL.current_module = MOD;
 }
 
 

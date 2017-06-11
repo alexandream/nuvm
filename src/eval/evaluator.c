@@ -52,29 +52,33 @@ ni_init_evaluator(void) {
     if (ni_init_values() < 0) {
         return -2;
     }
-    n_register_error_type(&INDEX_OO_BOUNDS, &error);
-    if (!n_is_ok(&error)) {
-        n_destroy_error(&error);
+    if (ni_init_modules() < 0) {
         return -3;
     }
-
-    n_register_error_type(&UNKNOWN_OPCODE, &error);
+    n_register_error_type(&INDEX_OO_BOUNDS, &error);
     if (!n_is_ok(&error)) {
         n_destroy_error(&error);
         return -4;
     }
 
-    ILLEGAL_ARGUMENT = n_error_type("nuvm.IllegalArgument", &error);
+    n_register_error_type(&UNKNOWN_OPCODE, &error);
     if (!n_is_ok(&error)) {
         n_destroy_error(&error);
         return -5;
+    }
+
+    ILLEGAL_ARGUMENT = n_error_type("nuvm.IllegalArgument", &error);
+    if (!n_is_ok(&error)) {
+        n_destroy_error(&error);
+        return -6;
     }
     return 0;
 }
 
 
 void n_evaluator_step(NEvaluator *self, NError *error) {
-    unsigned char *stream = self->code + self->pc;
+    unsigned char *stream = self->current_module->code + self->pc;
+
     uint8_t opcode = stream[0];
     switch (opcode) {
         case N_OP_NOP:
@@ -132,8 +136,8 @@ void n_evaluator_run(NEvaluator *self, NError *error) {
 
 NValue
 n_evaluator_get_register(NEvaluator *self, int index, NError *error) {
-    if (index < self->num_registers) {
-        return self->registers[index];
+    if (index < self->current_module->num_registers) {
+        return self->current_module->registers[index];
     }
     else {
         n_set_error(error, &INDEX_OO_BOUNDS, "The given index is larger "
@@ -159,13 +163,7 @@ n_evaluator_set_local(NEvaluator *self, int index, NValue val, NError *error) {
 
 #ifdef N_TEST
 void
-nt_construct_evaluator(NEvaluator* self, unsigned char* code, int code_size,
-                       NValue* registers, int num_registers) {
-
-    self->code = code;
-    self->code_size = code_size;
-    self->registers = registers;
-    self->num_registers = num_registers;
+nt_construct_evaluator(NEvaluator* self) {
     self->pc = 0;
     self->stack_size = N_STACK_SIZE;
     self->halted = 0;
@@ -307,7 +305,7 @@ op_global_ref(NEvaluator *self, unsigned char *stream, NError *error) {
     uint16_t source;
     int size = n_decode_op_global_ref(stream, &dest, &source);
 
-    set_local(self, dest, self->registers[source]);
+    set_local(self, dest, self->current_module->registers[source]);
     return size;
 }
 
@@ -318,7 +316,7 @@ op_global_set(NEvaluator *self, unsigned char *stream, NError *error) {
     uint8_t source;
     int size = n_decode_op_global_set(stream, &dest, &source);
 
-    self->registers[dest] = get_local(self, source);
+    self->current_module->registers[dest] = get_local(self, source);
     return size;
 }
 

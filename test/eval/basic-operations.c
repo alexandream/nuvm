@@ -35,6 +35,9 @@ static
 NEvaluator EVAL;
 
 static
+NModule* MOD;
+
+static
 NError ERR;
 
 static
@@ -79,6 +82,11 @@ CONSTRUCTOR(constructor) {
     if (!n_is_ok(&ERR)) {
         ERROR("Can't create copy primitive.", NULL);
     }
+
+    MOD = n_new_module(&ERR);
+    if (!n_is_ok(&ERR)) {
+        ERROR("Can't create module.", NULL);
+    }
 }
 
 
@@ -92,7 +100,14 @@ SETUP(setup) {
         REGISTERS[i] = n_wrap_fixnum(0);
     }
 
-    nt_construct_evaluator(&EVAL, CODE, CODE_SIZE, REGISTERS, NUM_REGISTERS);
+    nt_construct_evaluator(&EVAL);
+    MOD->code = CODE;
+    MOD->code_size = CODE_SIZE;
+    MOD->registers = REGISTERS;
+    MOD->num_registers = NUM_REGISTERS;
+
+    EVAL.current_module = MOD;
+
     for (i = 0; i < N_ARGUMENTS_SIZE; i++) {
         EVAL.arguments[i] = N_UNKNOWN;
     }
@@ -239,7 +254,6 @@ TEST(call_proc_pushes_ret_addr) {
 
 TEST(call_proc_pushes_arguments) {
     NValue proc = n_create_procedure(0, 0, &ERR);
-    fprintf(stderr,"BEGIN\n");
     ASSERT(IS_OK(ERR));
 
     n_encode_op_call(CODE, 9, 1, 3);
@@ -265,7 +279,6 @@ TEST(call_proc_pushes_arguments) {
     ASSERT(IS_TRUE(n_eq_values(n_evaluator_get_local(&EVAL, 2, &ERR),
                                n_wrap_fixnum(123))));
     ASSERT(IS_OK(ERR));
-    fprintf(stderr,"END\n");
 
 }
 
