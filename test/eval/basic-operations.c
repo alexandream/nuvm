@@ -50,6 +50,9 @@ static
 NValue COPY_PRIMITIVE;
 
 static
+NValue ENTRY_PROC;
+
+static
 int FLAG;
 
 static NValue
@@ -83,6 +86,11 @@ CONSTRUCTOR(constructor) {
         ERROR("Can't create copy primitive.", NULL);
     }
 
+    ENTRY_PROC = n_create_procedure(0, 0, &ERR);
+    if (!n_is_ok(&ERR)) {
+        ERROR("Can't create module's entry procedure.", NULL);
+    }
+
     MOD = n_new_module(&ERR);
     if (!n_is_ok(&ERR)) {
         ERROR("Can't create module.", NULL);
@@ -105,8 +113,13 @@ SETUP(setup) {
     MOD->code_size = CODE_SIZE;
     MOD->registers = REGISTERS;
     MOD->num_registers = NUM_REGISTERS;
+    MOD->entry_point = 15;
+    MOD->registers[15] = ENTRY_PROC;
 
-    EVAL.current_module = MOD;
+    n_prepare_evaluator(&EVAL, MOD, &ERR);
+    if (!n_is_ok(&ERR)) {
+        ERROR("Can't prepare evaluator to run the given module.", NULL);
+    }
 
     for (i = 0; i < N_ARGUMENTS_SIZE; i++) {
         EVAL.arguments[i] = N_UNKNOWN;

@@ -7,6 +7,7 @@
 #include "common/instruction-encoders.h"
 
 #include "eval/evaluator.h"
+#include "eval/procedures.h"
 #include "eval/values.h"
 
 
@@ -27,6 +28,11 @@ NEvaluator EVAL;
 static
 NModule *MOD;
 
+static
+NValue PROC;
+
+static const
+int PROC_ENTRY = 42;
 
 CONSTRUCTOR(constructor) {
     NError error = n_error_ok();
@@ -39,6 +45,12 @@ CONSTRUCTOR(constructor) {
     if (!n_is_ok(&error)) {
         ERROR("Can't create module.", NULL);
     }
+
+    PROC = n_create_procedure(PROC_ENTRY, 2, &error);
+    if (!n_is_ok(&error)) {
+        ERROR("Can't create module's entry procedure.", NULL);
+    }
+
 }
 
 
@@ -57,13 +69,15 @@ SETUP(setup) {
     MOD->code_size = CODE_SIZE;
     MOD->registers = REGISTERS;
     MOD->num_registers = NUM_REGISTERS;
+    MOD->entry_point = 15;
 
-    EVAL.current_module = MOD;
+    REGISTERS[15] = PROC;
+
 }
 
 
-TEST(pc_starts_on_zero) {
-    ASSERT(EQ_INT(EVAL.pc, 0));
+TEST(pc_starts_negative) {
+    ASSERT(IS_TRUE(EVAL.pc < 0));
 }
 
 
@@ -87,29 +101,50 @@ TEST(opcode_error_is_registered) {
 }
 
 
+TEST(evaluator_starts_halted) {
+    ASSERT(IS_TRUE(EVAL.halted));
+}
+
+
 TEST(step_nop_increases_pc) {
     NError error = n_error_ok();
-    n_encode_op_nop(CODE);
+
+    n_prepare_evaluator(&EVAL, MOD, &error);
+    ASSERT(IS_OK(error));
+
+    n_encode_op_nop(CODE+PROC_ENTRY);
     n_evaluator_step(&EVAL, &error);
 
     ASSERT(IS_OK(error));
-    ASSERT(EQ_INT(EVAL.pc, 1));
+    ASSERT(EQ_INT(EVAL.pc, PROC_ENTRY+1));
 }
 
 
 TEST(run_stops_on_halt) {
     NError error = n_error_ok();
 
-    n_encode_op_nop(CODE);
-    n_encode_op_nop(CODE+1);
-    n_encode_op_nop(CODE+2);
-    n_encode_op_halt(CODE+3);
+    n_prepare_evaluator(&EVAL, MOD, &error);
+    ASSERT(IS_OK(error));
+
+    n_encode_op_nop(CODE+PROC_ENTRY);
+    n_encode_op_nop(CODE+PROC_ENTRY+1);
+    n_encode_op_nop(CODE+PROC_ENTRY+2);
+    n_encode_op_halt(CODE+PROC_ENTRY+3);
     n_evaluator_run(&EVAL, &error);
 
     ASSERT(IS_OK(error));
-    ASSERT(EQ_INT(EVAL.pc, 3));
+    ASSERT(EQ_INT(EVAL.pc, PROC_ENTRY+3));
 }
 
+
+TEST(sp_starts_on_zero) {
+    ASSERT(EQ_INT(EVAL.sp, 0));
+}
+
+
+TEST(fp_starts_on_zero) {
+    ASSERT(EQ_INT(EVAL.fp, 0));
+}
 
 
 TEST(get_register_gives_correct_value) {
@@ -134,34 +169,65 @@ TEST(get_register_detects_out_of_range) {
 }
 
 
-TEST(sp_starts_on_end_of_dummy_frame) {
-    /* There's three elements on the stack upon construction. */
-    ASSERT(EQ_INT(EVAL.sp, 3));
-}
+TEST(prepare_pushes_dummy_frame) {
+    NError error = n_error_ok();
 
+    n_prepare_evaluator(&EVAL, MOD, &error);
+    ASSERT(IS_OK(error));
 
-TEST(dummy_frame_is_pushed) {
+    ASSERT(IS_TRUE(EVAL.sp >= 3));
     ASSERT(EQ_INT(EVAL.stack[0], -1));
     ASSERT(EQ_INT(EVAL.stack[1], 0));
     ASSERT(EQ_INT(EVAL.stack[2], 0));
 }
 
 
-TEST(fp_starts_on_zero) {
-    ASSERT(EQ_INT(EVAL.fp, 0));
+TEST(prepare_adds_num_locals_to_sp) {
+    NError error = n_error_ok();
+
+    n_prepare_evaluator(&EVAL, MOD, &error);
+    ASSERT(IS_OK(error));
+
+    /* 3 for the dummy frame, 2 for the num of locals in PROC */
+    ASSERT(EQ_INT(EVAL.sp, 3+2));
 }
+
+
+TEST(prepare_sets_pc_to_proc_entry) {
+    NError error = n_error_ok();
+
+    n_prepare_evaluator(&EVAL, MOD, &error);
+    ASSERT(IS_OK(error));
+
+    ASSERT(EQ_INT(EVAL.pc, PROC_ENTRY));
+}
+
+
+TEST(prepare_clears_halted_flag) {
+    NError error = n_error_ok();
+
+    n_prepare_evaluator(&EVAL, MOD, &error);
+    ASSERT(IS_OK(error));
+
+    ASSERT(IS_TRUE(!EVAL.halted));
+}
+
 
 AtTest* tests[] = {
     &index_error_is_registered,
     &opcode_error_is_registered,
     &step_nop_increases_pc,
-    &pc_starts_on_zero,
     &run_stops_on_halt,
+    &pc_starts_negative,
+    &evaluator_starts_halted,
+    &sp_starts_on_zero,
+    &fp_starts_on_zero,
     &get_register_gives_correct_value,
     &get_register_detects_out_of_range,
-    &sp_starts_on_end_of_dummy_frame,
-    &fp_starts_on_zero,
-    &dummy_frame_is_pushed,
+    &prepare_pushes_dummy_frame,
+    &prepare_adds_num_locals_to_sp,
+    &prepare_sets_pc_to_proc_entry,
+    &prepare_clears_halted_flag,
     NULL
 };
 

@@ -161,22 +161,48 @@ n_evaluator_set_local(NEvaluator *self, int index, NValue val, NError *error) {
 }
 
 
-#ifdef N_TEST
 void
-nt_construct_evaluator(NEvaluator* self) {
-    self->pc = 0;
-    self->stack_size = N_STACK_SIZE;
-    self->halted = 0;
+n_prepare_evaluator(NEvaluator *self, NModule *module, NError *error) {
+    NValue entry_val;
+    NProcedure* entry_proc;
+
+    entry_val = module->registers[module->entry_point];
+
+    if (!n_is_procedure(entry_val)) {
+        n_set_error(error, ILLEGAL_ARGUMENT, "Value on the entry point of "
+                    "a module must be a procedure.",
+                    NULL, NULL);
+        return;
+    }
+
+    entry_proc = (NProcedure*) n_unwrap_pointer(entry_val);
+
+    self->current_module = module;
+
+    self->pc = entry_proc->entry;
 
     /* Initialize the dummy frame.
      * A dummy frame is composed of a frame pointer of -1, followed by two
      * zeroes: one for the return value register index and another for the
      * return address. */
-    self->sp = 3;
+    self->sp = 3 + entry_proc->num_locals;
     self->fp = 0;
-    self->stack[0] = -1;
-    self->stack[1] = 0;
-    self->stack[2] = 0;
+    self->stack[self->fp+0] = -1;
+    self->stack[self->fp+1] = 0;
+    self->stack[self->fp+2] = 0;
+
+    self->halted = 0;
+}
+
+#ifdef N_TEST
+void
+nt_construct_evaluator(NEvaluator* self) {
+    self->pc = -1;
+    self->stack_size = N_STACK_SIZE;
+    self->halted = 1;
+
+    self->sp = 0;
+    self->fp = 0;
 }
 #endif /* N_TEST */
 

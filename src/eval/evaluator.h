@@ -45,6 +45,9 @@ n_evaluator_get_local(NEvaluator *self, int index, NError *error);
 void
 n_evaluator_set_local(NEvaluator *self, int index, NValue value, NError *error);
 
+void
+n_prepare_evaluator(NEvaluator *self, NModule *module, NError *error);
+
 #ifdef N_TEST
 void
 nt_construct_evaluator(NEvaluator* self);

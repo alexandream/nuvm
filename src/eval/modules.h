@@ -15,6 +15,7 @@ struct NModule {
     int code_size;
     NValue *registers;
     int num_registers;
+    int entry_point;
 };
 
 
