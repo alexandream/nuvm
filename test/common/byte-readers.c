@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 
 #include "../test.h"
 
@@ -10,17 +11,21 @@ NByteReader *READER = NULL;
 static
 char TEST_DATA[256];
 
+static
+NError ERR;
+
+
 CONSTRUCTOR(constructor) {
     if (ni_init_byte_readers() < 0) {
         ERROR("Cant initialize byte readers module.", NULL);
     }
 
     {
-        /* Initialize TEST_DATA with the first 256 bytes such that
-         * byte(N) = N, for N in 0 .. 255; */
+        /* Initialize TEST_DATA with the array:
+         * [ 0x01, 0x02, 0x03, ..., 0xFE, 0xFF, 0x00 ] */
         int i;
         for (i = 0; i < 256; i++) {
-            TEST_DATA[i] = i;
+            TEST_DATA[i] = (i+1) % 255;
         }
     }
 
@@ -35,6 +40,8 @@ SETUP(setup) {
         n_destroy_error(&error);
         ERROR("Can't setup byte reader for test.", NULL);
     }
+
+    ERR = n_error_ok();
 }
 
 
@@ -48,8 +55,131 @@ TEARDOWN(teardown) {
 }
 
 
+TEST(read_byte_gets_right_value) {
+    uint8_t output = n_read_byte(READER, &ERR);
+    ASSERT(IS_OK(ERR));
+    ASSERT(EQ_UINT(output, 1));
+}
+
+
+TEST(read_uint16_get_right_value) {
+    uint16_t output = n_read_uint16(READER, &ERR);
+    ASSERT(IS_OK(ERR));
+    ASSERT(EQ_UINT(output, 770 /*0x0203*/));
+}
+
+
+TEST(read_int16_get_right_value) {
+    int16_t output = n_read_int16(READER, &ERR);
+    ASSERT(IS_OK(ERR));
+    ASSERT(EQ_INT(output, 770 /*0x0102*/));
+}
+
+
+TEST(read_int32_get_right_value) {
+    int32_t output = n_read_int32(READER, &ERR);
+    ASSERT(IS_OK(ERR));
+    ASSERT(EQ_UINT(output, 67305985 /*0x01020304*/));
+}
+
+
+TEST(read_uint32_get_right_value) {
+    uint32_t output = n_read_uint32(READER, &ERR);
+    ASSERT(IS_OK(ERR));
+    ASSERT(EQ_UINT(output, 67305985 /*0x01020304*/));
+}
+
+
+TEST(read_bytes_reads_full_buffer) {
+    char buffer[256];
+    int bytes_read = n_read_bytes(READER, buffer, 256, &ERR);
+    ASSERT(IS_OK(ERR));
+    ASSERT(EQ_INT(bytes_read, 256));
+    ASSERT(IS_TRUE(memcmp(buffer, TEST_DATA, 256) == 0));
+}
+
+
+TEST(read_bytes_reads_partial_buffer) {
+    char buffer[512];
+    int bytes_read = n_read_bytes(READER, buffer, 512, &ERR);
+    ASSERT(IS_OK(ERR));
+    ASSERT(EQ_INT(bytes_read, 256));
+    ASSERT(IS_TRUE(memcmp(buffer, TEST_DATA, 256) == 0));
+}
+
+
+TEST(skip_bytes_moves_reader_ahead) {
+    uint8_t next_byte;
+
+    int skipped_bytes = n_skip_bytes(READER, 32, &ERR);
+    ASSERT(IS_OK(ERR));
+    ASSERT(EQ_INT(skipped_bytes, 32));
+
+    next_byte = n_read_byte(READER, &ERR);
+    ASSERT(IS_OK(ERR));
+    ASSERT(EQ_UINT(next_byte, 0x33));
+}
+
+
+TEST(read_byte_checks_bounds) {
+    n_skip_bytes(READER, 256, &ERR);
+    ASSERT(IS_OK(ERR));
+
+    n_read_byte(READER, &ERR);
+    ASSERT(IS_ERROR(ERR, "nuvm.UnexpectedEoF"));
+}
+
+
+TEST(read_uint16_checks_bounds) {
+    n_skip_bytes(READER, 255, &ERR);
+    ASSERT(IS_OK(ERR));
+
+    n_read_byte(READER, &ERR);
+    ASSERT(IS_ERROR(ERR, "nuvm.UnexpectedEoF"));
+}
+
+
+TEST(read_int16_checks_bounds) {
+    n_skip_bytes(READER, 255, &ERR);
+    ASSERT(IS_OK(ERR));
+
+    n_read_byte(READER, &ERR);
+    ASSERT(IS_ERROR(ERR, "nuvm.UnexpectedEoF"));
+}
+
+
+TEST(read_int32_checks_bounds) {
+    n_skip_bytes(READER, 253, &ERR);
+    ASSERT(IS_OK(ERR));
+
+    n_read_byte(READER, &ERR);
+    ASSERT(IS_ERROR(ERR, "nuvm.UnexpectedEoF"));
+}
+
+
+TEST(read_uint32_checks_bounds) {
+    n_skip_bytes(READER, 253, &ERR);
+    ASSERT(IS_OK(ERR));
+
+    n_read_byte(READER, &ERR);
+    ASSERT(IS_ERROR(ERR, "nuvm.UnexpectedEoF"));
+}
+
 
 AtTest* tests[] = {
+    &read_byte_gets_right_value,
+    &read_uint16_get_right_value,
+    &read_int16_get_right_value,
+    &read_int32_get_right_value,
+    &read_uint32_get_right_value,
+    &read_bytes_reads_full_buffer,
+    &read_bytes_reads_partial_buffer,
+    &skip_bytes_moves_reader_ahead,
+    &read_byte_checks_bounds,
+    &read_uint16_checks_bounds,
+    &read_int16_checks_bounds,
+    &read_int32_checks_bounds,
+    &read_uint32_checks_bounds,
     NULL
 };
 

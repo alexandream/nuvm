@@ -18,6 +18,7 @@ static
 NErrorType ERROR_TYPES[] = {
     { "nuvm.BadAllocation", NULL },
     { "nuvm.IllegalArgument", NULL },
+    { "nuvm.UnexpectedEoF", NULL },
     { "nuvm.error.InvalidName", NULL },
     { "nuvm.error.RepeatedName", NULL },
     { "nuvm.error.UnknownErrorType", NULL },
@@ -32,13 +33,13 @@ static
 NErrorType* ILLEGAL_ARGUMENT = ERROR_TYPES+1;
 
 static
-NErrorType* INVALID_NAME = ERROR_TYPES+2;
+NErrorType* INVALID_NAME = ERROR_TYPES+3;
 
 static
-NErrorType* REPEATED_NAME = ERROR_TYPES+3;
+NErrorType* REPEATED_NAME = ERROR_TYPES+4;
 
 static
-NErrorType* UNKNOWN_ERROR_TYPE = ERROR_TYPES+4;
+NErrorType* UNKNOWN_ERROR_TYPE = ERROR_TYPES+5;
 
 static
 NErrorRegistry DEFAULT_REGISTRY;

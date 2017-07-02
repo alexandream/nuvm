@@ -18,7 +18,7 @@ struct NByteReaderVTable {
     int32_t (*read_i32)(NByteReader*, NError*);
     int (*read_bytes)(NByteReader*, char*, int, NError*);
     int (*has_data)(NByteReader*);
-
+	int (*skip_bytes)(NByteReader*, int, NError*);
     void (*destroy)(NByteReader*, NError*);
 };
 
@@ -48,6 +48,9 @@ n_read_int32(NByteReader* self, NError* error);
 
 int
 n_read_bytes(NByteReader* self, char* dest, int size, NError* error);
+
+int
+n_skip_bytes(NByteReader*self, int num_bytes, NError* error);
 
 void
 n_destroy_byte_reader(NByteReader* self, NError* error);
