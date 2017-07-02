@@ -1,3 +1,5 @@
+#include <string.h>
+
 #include "byte-readers.h"
 
 typedef struct NMemoryByteReader NMemoryByteReader;
@@ -8,6 +10,9 @@ struct NByteReader {
 
 struct NMemoryByteReader {
     NByteReader parent;
+    const char *buffer;
+    int current_index;
+    int size;
 };
 
 
@@ -21,6 +26,9 @@ NErrorType *UNEXPECTED_EOF =  NULL;
 
 static void
 construct_byte_reader(NByteReader*, NByteReaderVTable*);
+
+static NMemoryByteReader*
+new_memory_byte_reader(const char*, int);
 
 static uint8_t
 memory_read_byte(NByteReader*, NError*);
@@ -81,8 +89,7 @@ ni_init_byte_readers(void) {
 
 NByteReader*
 n_new_byte_reader_from_data(char* data, int size, NError* error) {
-    NMemoryByteReader* self = malloc(sizeof(NMemoryByteReader));
-    construct_byte_reader((NByteReader*) self, &MEMORY_VTABLE);
+    NMemoryByteReader* self =  new_memory_byte_reader(data, size);
     return (NByteReader*) self;
 }
 
@@ -147,58 +154,133 @@ n_destroy_byte_reader(NByteReader* self, NError* error) {
 }
 
 
+static NMemoryByteReader*
+new_memory_byte_reader(const char* data, int size) {
+    NMemoryByteReader* self = malloc(sizeof(NMemoryByteReader));
+    if (self == NULL) {
+        return NULL;
+    }
+    construct_byte_reader((NByteReader*) self, &MEMORY_VTABLE);
 
-static uint8_t
-memory_read_byte(NByteReader* generic_self, NError* error) {
-    return 0;
+    self->buffer = data;
+    self->size = size;
+    self->current_index = 0;
+
+    return self;
 }
 
 
+static int
+memory_trunc_to_available(NMemoryByteReader* self, int size) {
+    int available_bytes = self->size - self->current_index;
+    return (available_bytes < size) ? available_bytes : size;
+}
+
+
+static int assert_readable_size(NMemoryByteReader *self, int size,
+                                NError *error) {
+    if (memory_trunc_to_available(self, size) < size) {
+        n_set_error(error, UNEXPECTED_EOF, "Depleted buffer while trying to "
+                    "read from byte reader.", NULL, NULL);
+        return 0;
+    }
+    return 1;
+}
+static uint8_t
+memory_read_byte(NByteReader* generic_self, NError* error) {
+    NMemoryByteReader* self = (NMemoryByteReader*) generic_self;
+    const char* b = self->buffer + self->current_index;
+
+    if (!assert_readable_size(self, 1, error)) return 0;
+
+    self->current_index += 1;
+    return *b;
+}
+
 static uint16_t
 memory_read_u16(NByteReader* generic_self, NError* error) {
-    return 0;
+    NMemoryByteReader* self = (NMemoryByteReader*) generic_self;
+    const char* b = self->buffer + self->current_index;
+
+    if (!assert_readable_size(self, 2, error)) return 0;
+
+    self->current_index += 2;
+    return (((uint16_t) b[1]) << 8) + b[0];
 }
 
 
 static int16_t
 memory_read_i16(NByteReader* generic_self, NError* error) {
-    return 0;
+    NMemoryByteReader* self = (NMemoryByteReader*) generic_self;
+    const char* b = self->buffer + self->current_index;
+
+    if (!assert_readable_size(self, 2, error)) return 0;
+
+    self->current_index += 2;
+    return (int16_t) ((((uint16_t) b[1]) << 8) + b[0]);
 }
 
 
 static uint32_t
 memory_read_u32(NByteReader* generic_self, NError* error) {
-    return 0;
+    NMemoryByteReader* self = (NMemoryByteReader*) generic_self;
+    const char* b = self->buffer + self->current_index;
+
+    if (!assert_readable_size(self, 4, error)) return 0;
+
+    self->current_index += 4;
+    return (((uint32_t) b[3]) << 24)
+         + (((uint32_t) b[2]) << 16)
+         + (((uint32_t) b[1]) << 8)
+         + b[0];
 }
 
 
 static int32_t
 memory_read_i32(NByteReader* generic_self, NError* error) {
-    return 0;
+    NMemoryByteReader* self = (NMemoryByteReader*) generic_self;
+    const char* b = self->buffer + self->current_index;
+
+    if (!assert_readable_size(self, 4, error)) return 0;
+
+    self->current_index += 4;
+    return (int32_t) ((((int32_t) b[3]) << 24)
+                      + (((int32_t) b[2]) << 16)
+                      + (((int32_t) b[1]) << 8)
+                      + b[0]);
 }
 
 
 static int
 memory_read_bytes(NByteReader* generic_self, char* dest,
                   int size, NError* error) {
-    return 0;
+    NMemoryByteReader* self = (NMemoryByteReader*) generic_self;
+    int readable_size = memory_trunc_to_available(self, size);
+
+    memcpy(dest, self->buffer + self->current_index, readable_size);
+    return readable_size;
 }
 
 
 static int
 memory_skip_bytes(NByteReader* generic_self, int size, NError* error) {
-    return 0;
+    NMemoryByteReader* self = (NMemoryByteReader*) generic_self;
+    int skippable_size = memory_trunc_to_available(self, size);
+    self->current_index += skippable_size;
+    return skippable_size;
 }
 
 static int
 memory_has_data(NByteReader* generic_self) {
-    return 0;
+    NMemoryByteReader* self = (NMemoryByteReader*) generic_self;
+    return self->current_index < self->size;
 }
 
 
 static void
 memory_destroy(NByteReader* generic_self, NError* error) {
-
+    NMemoryByteReader* self = (NMemoryByteReader*) generic_self;
+    free(self);
 }
 
 

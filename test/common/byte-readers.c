@@ -65,28 +65,28 @@ TEST(read_byte_gets_right_value) {
 TEST(read_uint16_get_right_value) {
     uint16_t output = n_read_uint16(READER, &ERR);
     ASSERT(IS_OK(ERR));
-    ASSERT(EQ_UINT(output, 770 /*0x0203*/));
+    ASSERT(EQ_UINT(output,  513 /*0x01, 0x02*/));
 }
 
 
 TEST(read_int16_get_right_value) {
     int16_t output = n_read_int16(READER, &ERR);
     ASSERT(IS_OK(ERR));
-    ASSERT(EQ_INT(output, 770 /*0x0102*/));
+    ASSERT(EQ_INT(output, 513 /*0x01, 0x02*/));
 }
 
 
 TEST(read_int32_get_right_value) {
     int32_t output = n_read_int32(READER, &ERR);
     ASSERT(IS_OK(ERR));
-    ASSERT(EQ_UINT(output, 67305985 /*0x01020304*/));
+    ASSERT(EQ_UINT(output, 67305985 /*0x01, 0x02, 0x03, 0x04*/));
 }
 
 
 TEST(read_uint32_get_right_value) {
     uint32_t output = n_read_uint32(READER, &ERR);
     ASSERT(IS_OK(ERR));
-    ASSERT(EQ_UINT(output, 67305985 /*0x01020304*/));
+    ASSERT(EQ_UINT(output, 67305985 /*0x01, 0x02, 0x03, 0x04*/));
 }
 
 
@@ -117,7 +117,14 @@ TEST(skip_bytes_moves_reader_ahead) {
 
     next_byte = n_read_byte(READER, &ERR);
     ASSERT(IS_OK(ERR));
-    ASSERT(EQ_UINT(next_byte, 0x33));
+    ASSERT(EQ_UINT(next_byte, 33));
+}
+
+
+TEST(skip_bytes_stops_on_reader_end) {
+    int skipped_bytes = n_skip_bytes(READER, 300,  &ERR);
+    ASSERT(IS_OK(ERR));
+    ASSERT(EQ_INT(skipped_bytes, 256));
 }
 
 
@@ -134,7 +141,7 @@ TEST(read_uint16_checks_bounds) {
     n_skip_bytes(READER, 255, &ERR);
     ASSERT(IS_OK(ERR));
 
-    n_read_byte(READER, &ERR);
+    n_read_uint16(READER, &ERR);
     ASSERT(IS_ERROR(ERR, "nuvm.UnexpectedEoF"));
 }
 
@@ -143,7 +150,7 @@ TEST(read_int16_checks_bounds) {
     n_skip_bytes(READER, 255, &ERR);
     ASSERT(IS_OK(ERR));
 
-    n_read_byte(READER, &ERR);
+    n_read_int16(READER, &ERR);
     ASSERT(IS_ERROR(ERR, "nuvm.UnexpectedEoF"));
 }
 
@@ -152,7 +159,7 @@ TEST(read_int32_checks_bounds) {
     n_skip_bytes(READER, 253, &ERR);
     ASSERT(IS_OK(ERR));
 
-    n_read_byte(READER, &ERR);
+    n_read_int32(READER, &ERR);
     ASSERT(IS_ERROR(ERR, "nuvm.UnexpectedEoF"));
 }
 
@@ -161,8 +168,21 @@ TEST(read_uint32_checks_bounds) {
     n_skip_bytes(READER, 253, &ERR);
     ASSERT(IS_OK(ERR));
 
-    n_read_byte(READER, &ERR);
+    n_read_uint32(READER, &ERR);
     ASSERT(IS_ERROR(ERR, "nuvm.UnexpectedEoF"));
+}
+
+
+TEST(has_data_is_true_when_not_at_end) {
+    ASSERT(IS_TRUE(n_has_bytes_to_read(READER)));
+}
+
+
+TEST(has_data_is_false_when_at_end) {
+    n_skip_bytes(READER, 256, &ERR);
+    ASSERT(IS_OK(ERR));
+
+    ASSERT(IS_TRUE(!n_has_bytes_to_read(READER)));
 }
 
 
@@ -175,11 +195,14 @@ AtTest* tests[] = {
     &read_bytes_reads_full_buffer,
     &read_bytes_reads_partial_buffer,
     &skip_bytes_moves_reader_ahead,
+    &skip_bytes_stops_on_reader_end,
     &read_byte_checks_bounds,
     &read_uint16_checks_bounds,
     &read_int16_checks_bounds,
     &read_int32_checks_bounds,
     &read_uint32_checks_bounds,
+    &has_data_is_true_when_not_at_end,
+    &has_data_is_false_when_at_end,
     NULL
 };
 

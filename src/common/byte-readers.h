@@ -52,6 +52,9 @@ n_read_bytes(NByteReader* self, char* dest, int size, NError* error);
 int
 n_skip_bytes(NByteReader*self, int num_bytes, NError* error);
 
+int
+n_has_bytes_to_read(NByteReader* self);
+
 void
 n_destroy_byte_reader(NByteReader* self, NError* error);
 
