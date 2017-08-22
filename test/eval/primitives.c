@@ -3,6 +3,7 @@
 #include "../test.h"
 
 #include "common/errors.h"
+#include "eval/types.h"
 #include "eval/primitives.h"
 
 

@@ -1,4 +1,5 @@
 #include "primitives.h"
+#include "types.h"
 #include "values.h"
 
 static
@@ -56,20 +57,20 @@ n_create_primitive(NPrimitiveFunc function, NError *error) {
 
     primitive->object_header.type = &_primitive_type;
     primitive->func = function;
-    return n_wrap_pointer((NObject*) primitive);
+    return n_wrap_object((NObject*) primitive);
 }
 
 int
 n_is_primitive(NValue value) {
-    if (n_is_pointer(value)) {
-        return ((NObject*) n_unwrap_pointer(value))->type == &_primitive_type;
+    if (!n_is_immediate(value)) {
+        return ((NObject*) n_unwrap_object(value))->type == &_primitive_type;
     }
     return 0;
 }
 
 NValue
 n_call_primitive(NValue primitive, int n_args, NValue *args, NError *error) {
-    NPrimitiveFunc func = ((NPrimitive*) n_unwrap_pointer(primitive))->func;
+    NPrimitiveFunc func = ((NPrimitive*) n_unwrap_object(primitive))->func;
 
     return func(n_args, args, error);
 }

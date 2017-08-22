@@ -175,7 +175,7 @@ n_prepare_evaluator(NEvaluator *self, NModule *module, NError *error) {
         return;
     }
 
-    entry_proc = (NProcedure*) n_unwrap_pointer(entry_val);
+    entry_proc = (NProcedure*) n_unwrap_object(entry_val);
 
     self->current_module = module;
 
@@ -250,7 +250,7 @@ op_call(NEvaluator *self, unsigned char *stream, NError *error) {
     }
     else if (n_is_procedure(callable)) {
         /* Set up the new frame and jump to the procedure's entry point. */
-        NProcedure* proc = (NProcedure*) n_unwrap_pointer(callable);
+        NProcedure* proc = (NProcedure*) n_unwrap_object(callable);
         int previous_fp = self->fp;
         NValue* old_locals = get_locals_addr(self);
         self->fp = self->sp;

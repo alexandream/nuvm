@@ -2,13 +2,9 @@
 #define N_E_TYPES_H
 
 #include "../common/errors.h"
+#include "values.h"
 
 typedef struct NTypeRegistry NTypeRegistry;
-typedef struct NType NType;
-
-struct NType {
-    const char* name;
-};
 
 
 int

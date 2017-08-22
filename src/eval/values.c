@@ -1,6 +1,7 @@
 #include <stdlib.h>
 
 #include "values.h"
+#include "types.h"
 #include "primitives.h"
 #include "procedures.h"
 
@@ -62,9 +63,9 @@ ni_init_values() {
         false_ptr->type = &_boolean_type;
         unknown_ptr->type = &_unknown_type;
 
-        N_TRUE = n_wrap_pointer(true_ptr);
-        N_FALSE = n_wrap_pointer(false_ptr);
-        N_UNKNOWN = n_wrap_pointer(unknown_ptr);
+        N_TRUE = n_wrap_object(true_ptr);
+        N_FALSE = n_wrap_object(false_ptr);
+        N_UNKNOWN = n_wrap_object(unknown_ptr);
     }
 
     return 0;
@@ -78,7 +79,7 @@ n_wrap_fixnum(NFixnum fixnum) {
 
 
 NValue
-n_wrap_pointer(NObject* pointer) {
+n_wrap_object(NObject* pointer) {
     return ((NValue) pointer) | 1;
 }
 
@@ -90,7 +91,7 @@ n_unwrap_fixnum(NValue value) {
 
 
 NObject*
-n_unwrap_pointer(NValue value) {
+n_unwrap_object(NValue value) {
     return (NObject*) (value & ~1);
 }
 
@@ -113,8 +114,8 @@ n_is_fixnum(NValue value) {
 
 
 int
-n_is_pointer(NValue value) {
-    return !n_is_fixnum(value);
+n_is_immediate(NValue value) {
+    return n_is_fixnum(value);
 }
 
 
@@ -123,6 +124,6 @@ n_type_of(NValue value) {
     if (n_is_fixnum(value)) {
         return &_fixnum_type;
     }
-    return n_unwrap_pointer(value)->type;
+    return n_unwrap_object(value)->type;
 }
 

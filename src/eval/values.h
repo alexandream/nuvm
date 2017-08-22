@@ -2,9 +2,9 @@
 #define N_E_VALUES_H
 
 #include "../common/compatibility/stdint.h"
-#include "types.h"
 
 typedef struct NObject NObject;
+typedef struct NType NType;
 
 typedef intptr_t NValue;
 typedef short NFixnum;
@@ -16,6 +16,13 @@ extern NValue N_UNKNOWN;
 #define N_FIXNUM_MIN ((NFixnum) -32768)
 #define N_FIXNUM_MAX ((NFixnum)  32767)
 
+#define n_eq_values(LEFT, RIGHT) ((LEFT) == (RIGHT))
+
+
+struct NType {
+    const char* name;
+};
+
 struct NObject {
     NType *type;
 };
@@ -23,21 +30,22 @@ struct NObject {
 int
 ni_init_values(void);
 
-#define n_wrap_boolean(STT) (STT? N_TRUE : N_FALSE)
-
-#define n_unwrap_boolean(VAL) (VAL == N_TRUE ? 1 : 0)
-
 NValue
-n_wrap_fixnum(NFixnum fixnum);
-
-NValue
-n_wrap_pointer(NObject* pointer);
-
-NFixnum
-n_unwrap_fixnum(NValue value);
+n_wrap_object(NObject* object);
 
 NObject*
-n_unwrap_pointer(NValue value);
+n_unwrap_object(NValue value);
+
+int
+n_is_immediate(NValue value);
+
+
+NType*
+n_type_of(NValue value);
+
+
+
+
 
 int
 n_is_unknown(NValue value);
@@ -45,15 +53,20 @@ n_is_unknown(NValue value);
 int
 n_is_boolean(NValue value);
 
+
 int
 n_is_fixnum(NValue value);
 
-int
-n_is_pointer(NValue value);
+NValue
+n_wrap_fixnum(NFixnum fixnum);
 
-NType*
-n_type_of(NValue value);
+NFixnum
+n_unwrap_fixnum(NValue value);
 
-#define n_eq_values(LEFT, RIGHT) ((LEFT) == (RIGHT))
+
+#define n_wrap_boolean(STT) (STT? N_TRUE : N_FALSE)
+
+#define n_unwrap_boolean(VAL) (VAL == N_TRUE ? 1 : 0)
+
 #endif /* N_E_VALUES_H */
 

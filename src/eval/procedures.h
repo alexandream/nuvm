@@ -1,6 +1,7 @@
 #ifndef N_E_PROCEDURES_H
 #define N_E_PROCEDURES_H
 
+#include "../common/errors.h"
 #include "values.h"
 
 typedef struct NProcedure NProcedure;

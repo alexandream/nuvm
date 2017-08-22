@@ -1,6 +1,8 @@
 #ifndef N_E_PRIMITIVES_H
 #define N_E_PRIMITIVES_H
 
+#include "../common/errors.h"
+
 #include "values.h"
 
 typedef struct NPrimitive NPrimitive;

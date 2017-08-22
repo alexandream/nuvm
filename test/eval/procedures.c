@@ -3,6 +3,7 @@
 #include "../test.h"
 
 #include "common/errors.h"
+#include "eval/types.h"
 #include "eval/procedures.h"
 
 static
@@ -77,7 +78,7 @@ TEST(create_procedure_sets_entry) {
     NProcedure *proc_ptr;
     ASSERT(IS_OK(ERR));
 
-    proc_ptr = (NProcedure*) n_unwrap_pointer(proc);
+    proc_ptr = (NProcedure*) n_unwrap_object(proc);
     ASSERT(EQ_INT(proc_ptr->entry, 12345));
 }
 
@@ -87,7 +88,7 @@ TEST(create_procedure_sets_num_locals) {
     NProcedure *proc_ptr;
     ASSERT(IS_OK(ERR));
 
-    proc_ptr = (NProcedure*) n_unwrap_pointer(proc);
+    proc_ptr = (NProcedure*) n_unwrap_object(proc);
     ASSERT(EQ_UINT(proc_ptr->num_locals, 123));
 }
 

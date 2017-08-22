@@ -1,5 +1,6 @@
 #include "procedures.h"
 #include "values.h"
+#include "types.h"
 
 static
 NErrorType* BAD_ALLOCATION = NULL;
@@ -58,14 +59,14 @@ n_create_procedure(int entry, uint8_t num_locals, NError *error) {
     proc_ptr->entry = entry;
     proc_ptr->num_locals = num_locals;
 
-    return n_wrap_pointer((NObject*)proc_ptr);
+    return n_wrap_object((NObject*)proc_ptr);
 }
 
 
 int
 n_is_procedure(NValue value) {
-    if (n_is_pointer(value)) {
-        return ((NObject*) n_unwrap_pointer(value))->type == &_procedure_type;
+    if (!n_is_immediate(value)) {
+        return ((NObject*) n_unwrap_object(value))->type == &_procedure_type;
     }
     return 0;
 }
