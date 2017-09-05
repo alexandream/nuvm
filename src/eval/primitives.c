@@ -1,5 +1,5 @@
 #include "primitives.h"
-#include "types.h"
+#include "type-registry.h"
 #include "values.h"
 
 static
@@ -15,7 +15,7 @@ int
 ni_init_primitives(void) {
     NError error = n_error_ok();
 
-    if (ni_init_types() < 0) {
+    if (ni_init_type_registry() < 0) {
         return -1;
     }
 

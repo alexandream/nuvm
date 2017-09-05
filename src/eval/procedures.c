@@ -1,6 +1,6 @@
 #include "procedures.h"
 #include "values.h"
-#include "types.h"
+#include "type-registry.h"
 
 static
 NErrorType* BAD_ALLOCATION = NULL;
@@ -15,7 +15,7 @@ NType _procedure_type;
 int
 ni_init_procedures(void) {
     NError error = n_error_ok();
-    if (ni_init_types() < 0) {
+    if (ni_init_type_registry() < 0) {
         return -1;
     }
 

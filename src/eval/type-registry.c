@@ -2,7 +2,7 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "types.h"
+#include "type-registry.h"
 #include "../common/errors.h"
 #include "../common/name-registry.h"
 
@@ -53,7 +53,7 @@ static void
 register_type(NTypeRegistry* self, NType* type, NError* error);
 
 
-int ni_init_types() {
+int ni_init_type_registry() {
     if (!INITIALIZED) {
         NError error = n_error_ok();
 

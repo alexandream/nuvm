@@ -3,7 +3,7 @@
 #include "../test.h"
 
 #include "common/errors.h"
-#include "eval/types.h"
+#include "eval/type-registry.h"
 #include "eval/procedures.h"
 
 static

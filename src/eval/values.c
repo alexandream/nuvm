@@ -1,7 +1,7 @@
 #include <stdlib.h>
 
 #include "values.h"
-#include "types.h"
+#include "type-registry.h"
 #include "primitives.h"
 #include "procedures.h"
 
@@ -17,7 +17,7 @@ int
 ni_init_values() {
     NError error = n_error_ok();
 
-    if (ni_init_types() < 0) {
+    if (ni_init_type_registry() < 0) {
         return -1;
     }
 

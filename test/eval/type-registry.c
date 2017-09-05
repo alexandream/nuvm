@@ -3,12 +3,12 @@
 #include "../test.h"
 
 #include "common/errors.h"
-#include "eval/types.h"
+#include "eval/type-registry.h"
 
 NTypeRegistry* TR = NULL;
 
 CONSTRUCTOR(constructor) {
-	int status = ni_init_types();
+	int status = ni_init_type_registry();
 	if (status < 0) {
 		ERROR("Cant initialize types system.", NULL);
 	}
@@ -161,4 +161,4 @@ AtTest* tests[] = {
 };
 
 
-TEST_RUNNER("Types", tests, constructor, NULL, setup, teardown)
+TEST_RUNNER("TypeRegistry", tests, constructor, NULL, setup, teardown)
