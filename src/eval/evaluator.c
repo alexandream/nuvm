@@ -3,7 +3,9 @@
 #include "values.h"
 #include "primitives.h"
 #include "procedures.h"
+#include "singletons.h"
 #include "evaluator.h"
+
 
 #include "../common/opcodes.h"
 #include "../common/instruction-decoders.h"
@@ -44,33 +46,37 @@ op_global_set(NEvaluator *self, unsigned char *stream, NError *error);
 
 int
 ni_init_evaluator(void) {
-    NError error = n_error_ok();
+    static int INITIALIZED = 0;
+    if (!INITIALIZED) {
+        NError error = n_error_ok();
 
-    if (ni_init_errors() < 0) {
-        return -1;
-    }
-    if (ni_init_values() < 0) {
-        return -2;
-    }
-    if (ni_init_modules() < 0) {
-        return -3;
-    }
-    n_register_error_type(&INDEX_OO_BOUNDS, &error);
-    if (!n_is_ok(&error)) {
-        n_destroy_error(&error);
-        return -4;
-    }
+        if (ni_init_errors() < 0) {
+            return -1;
+        }
+        if (ni_init_all_values() < 0) {
+            return -2;
+        }
+        if (ni_init_modules() < 0) {
+            return -3;
+        }
+        n_register_error_type(&INDEX_OO_BOUNDS, &error);
+        if (!n_is_ok(&error)) {
+            n_destroy_error(&error);
+            return -4;
+        }
 
-    n_register_error_type(&UNKNOWN_OPCODE, &error);
-    if (!n_is_ok(&error)) {
-        n_destroy_error(&error);
-        return -5;
-    }
+        n_register_error_type(&UNKNOWN_OPCODE, &error);
+        if (!n_is_ok(&error)) {
+            n_destroy_error(&error);
+            return -5;
+        }
 
-    ILLEGAL_ARGUMENT = n_error_type("nuvm.IllegalArgument", &error);
-    if (!n_is_ok(&error)) {
-        n_destroy_error(&error);
-        return -6;
+        ILLEGAL_ARGUMENT = n_error_type("nuvm.IllegalArgument", &error);
+        if (!n_is_ok(&error)) {
+            n_destroy_error(&error);
+            return -6;
+        }
+        INITIALIZED = 1;
     }
     return 0;
 }
@@ -106,6 +112,8 @@ void n_evaluator_step(NEvaluator *self, NError *error) {
             self->pc = op_call(self, stream, error);
             break;
         case N_OP_RETURN:
+            /* Note the assignment to pc here. Refer to the CALL instruction
+             * for a rationale. */
             self->pc = op_return(self, stream, error);
             break;
         case N_OP_GLOBAL_REF:

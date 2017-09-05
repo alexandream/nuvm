@@ -4,6 +4,7 @@
 
 #include "common/errors.h"
 #include "eval/type-registry.h"
+#include "eval/singletons.h"
 #include "eval/primitives.h"
 
 
@@ -25,8 +26,8 @@ copy_func(int n_args, NValue *args, NError *error);
 
 
 CONSTRUCTOR(constructor) {
-    if (ni_init_values() < 0) {
-        ERROR("Can't initialize primitive procedures module.", NULL);
+    if (ni_init_all_values() < 0) {
+        ERROR("Can't initialize values modules.", NULL);
     }
 
     OTHER_VALUES[0] = N_TRUE;

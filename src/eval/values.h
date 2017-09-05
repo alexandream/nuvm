@@ -9,10 +9,6 @@ typedef struct NType NType;
 typedef intptr_t NValue;
 typedef short NFixnum;
 
-extern NValue N_TRUE;
-extern NValue N_FALSE;
-extern NValue N_UNKNOWN;
-
 #define N_FIXNUM_MIN ((NFixnum) -32768)
 #define N_FIXNUM_MAX ((NFixnum)  32767)
 
@@ -29,6 +25,13 @@ struct NObject {
 
 int
 ni_init_values(void);
+
+/* This function isn't actually defined in the values.c file. Instead,
+ * it is part of the 'values-initializer.c' file and is simply a helper
+ * for other code that depends on the types being all initialized. */
+int
+ni_init_all_values(void);
+
 
 NValue
 n_wrap_object(NObject* object);
@@ -48,13 +51,6 @@ n_type_of(NValue value);
 
 
 int
-n_is_unknown(NValue value);
-
-int
-n_is_boolean(NValue value);
-
-
-int
 n_is_fixnum(NValue value);
 
 NValue
@@ -63,10 +59,6 @@ n_wrap_fixnum(NFixnum fixnum);
 NFixnum
 n_unwrap_fixnum(NValue value);
 
-
-#define n_wrap_boolean(STT) (STT? N_TRUE : N_FALSE)
-
-#define n_unwrap_boolean(VAL) (VAL == N_TRUE ? 1 : 0)
 
 #endif /* N_E_VALUES_H */
 

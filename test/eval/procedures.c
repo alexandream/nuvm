@@ -4,6 +4,7 @@
 
 #include "common/errors.h"
 #include "eval/type-registry.h"
+#include "eval/singletons.h"
 #include "eval/procedures.h"
 
 static
@@ -13,8 +14,8 @@ static
 NError ERR;
 
 CONSTRUCTOR(constructor) {
-    if (ni_init_values() < 0) {
-        ERROR("Can't initialize user procedures module.", NULL);
+    if (ni_init_all_values() < 0) {
+        ERROR("Can't initialize values modules.", NULL);
     }
     OTHER_VALUES[0] = N_TRUE;
     OTHER_VALUES[1] = N_FALSE;

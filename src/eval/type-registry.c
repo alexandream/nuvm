@@ -18,8 +18,6 @@ struct NTypeRegistry {
 static
 NTypeRegistry DEFAULT_REGISTRY;
 
-static
-int INITIALIZED = 0;
 
 static NErrorType ERROR_TYPES[] = {
     { "nuvm.types.InvalidName", NULL },
@@ -54,6 +52,7 @@ register_type(NTypeRegistry* self, NType* type, NError* error);
 
 
 int ni_init_type_registry() {
+	static int INITIALIZED = 0;
     if (!INITIALIZED) {
         NError error = n_error_ok();
 

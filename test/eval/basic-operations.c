@@ -9,6 +9,7 @@
 #include "eval/evaluator.h"
 #include "eval/primitives.h"
 #include "eval/procedures.h"
+#include "eval/singletons.h"
 #include "eval/values.h"
 
 
@@ -70,6 +71,10 @@ CONSTRUCTOR(constructor) {
     if (ni_init_evaluator() < 0) {
         ERROR("Can't initialize evaluator module.", NULL);
     }
+
+	if (ni_init_all_values() < 0) {
+		ERROR("Can't initialize singletons module.", NULL);
+	}
 
     TRUE_PRIMITIVE = n_create_primitive(true_function, &ERR);
     if (!n_is_ok(&ERR)) {
