@@ -31,8 +31,8 @@ TEARDOWN(teardown) {
 
 
 TEST(ok_constructor_is_actual_ok_result) {
-	NError ok = n_error_ok();
-	ASSERT(IS_OK(ok));
+    NError ok = n_error_ok();
+    ASSERT(IS_OK(ok));
 }
 
 
@@ -59,18 +59,18 @@ TEST(rejects_null_name) {
 
 
 TEST(rejects_null_type) {
-	NError error = n_error_ok();
+    NError error = n_error_ok();
 
-	nt_register_error_type(ER, NULL, &error);
-	ASSERT(IS_ERROR(error, "nuvm.IllegalArgument"));
+    nt_register_error_type(ER, NULL, &error);
+    ASSERT(IS_ERROR(error, "nuvm.IllegalArgument"));
 }
 
 
 TEST(can_register_and_find_different_types) {
-	NError error = n_error_ok();
+    NError error = n_error_ok();
     NErrorType type1;
     NErrorType type2;
-	NErrorType* type_retrieved;
+    NErrorType* type_retrieved;
 
     n_construct_error_type(&type1, "foo.ErrorX");
     nt_register_error_type(ER, &type1, &error);
@@ -80,19 +80,19 @@ TEST(can_register_and_find_different_types) {
     n_construct_error_type(&type2, "foo.ErrorY");
     nt_register_error_type(ER, &type2, &error);
 
-	ASSERT(IS_OK(error));
+    ASSERT(IS_OK(error));
 
     type_retrieved = nt_error_type(ER, "foo.ErrorX", &error);
 
     ASSERT(IS_OK(error));
     ASSERT(EQ_PTR(type_retrieved, &type1));
-	ASSERT(EQ_STR(type_retrieved->name, type1.name));
+    ASSERT(EQ_STR(type_retrieved->name, type1.name));
 
     type_retrieved = nt_error_type(ER, "foo.ErrorY", &error);
 
     ASSERT(IS_OK(error));
     ASSERT(EQ_PTR(type_retrieved, &type2));
-	ASSERT(EQ_STR(type_retrieved->name, type2.name));
+    ASSERT(EQ_STR(type_retrieved->name, type2.name));
 }
 
 
@@ -149,7 +149,7 @@ TEST(can_find_by_name) {
 
     ASSERT(IS_OK(error));
     ASSERT(EQ_PTR(type_retrieved, &type));
-	ASSERT(EQ_STR(type_retrieved->name, type.name));
+    ASSERT(EQ_STR(type_retrieved->name, type.name));
 }
 
 
@@ -165,17 +165,17 @@ TEST(cant_find_unknown_name) {
 
 
 AtTest* tests[] = {
-	&ok_constructor_is_actual_ok_result,
-	&can_register_error_type,
-	&rejects_null_name,
-	&rejects_null_type,
-	&rejects_empty_name,
-	&rejects_blank_name,
-	&rejects_repeated_name,
-	&can_find_by_name,
-	&cant_find_unknown_name,
-	&can_register_and_find_different_types,
-	NULL
+    &ok_constructor_is_actual_ok_result,
+    &can_register_error_type,
+    &rejects_null_name,
+    &rejects_null_type,
+    &rejects_empty_name,
+    &rejects_blank_name,
+    &rejects_repeated_name,
+    &can_find_by_name,
+    &cant_find_unknown_name,
+    &can_register_and_find_different_types,
+    NULL
 };
 
 

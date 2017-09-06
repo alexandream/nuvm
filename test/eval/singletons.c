@@ -11,9 +11,9 @@ CONSTRUCTOR(constructor) {
     if (ni_init_values() < 0) {
         ERROR("Can't initialize values module.", NULL);
     }
-	if (ni_init_singletons() < 0) {
-		ERROR("Can't initialize singletons module.", NULL);
-	}
+    if (ni_init_singletons() < 0) {
+        ERROR("Can't initialize singletons module.", NULL);
+    }
 }
 
 TEST(boolean_type_is_registered) {

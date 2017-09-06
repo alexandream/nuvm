@@ -28,10 +28,10 @@ AtArrayIterator fixnums_iter = at_static_array_iterator(fixnums_array);
 
 
 TEST(fixnum_type_is_registered) {
-	NError error = n_error_ok();
-	NType* fixnum_type = n_find_type("nuvm.Fixnum", &error);
-	ASSERT(IS_TRUE(fixnum_type != NULL));
-	ASSERT(IS_OK(error));
+    NError error = n_error_ok();
+    NType* fixnum_type = n_find_type("nuvm.Fixnum", &error);
+    ASSERT(IS_TRUE(fixnum_type != NULL));
+    ASSERT(IS_OK(error));
 }
 
 
@@ -64,7 +64,7 @@ DD_TEST(wrap_unwrap_is_fixnum, fixnums_iter, NFixnum, fixnum) {
 
 
 AtTest* tests[] = {
-	&fixnum_type_is_registered,
+    &fixnum_type_is_registered,
     &min_fixnum_lt_max_fixnum,
     &min_fixnum_is_negative,
     &max_fixnum_is_positive,

@@ -43,13 +43,8 @@ TEST(procedure_type_is_registered) {
 }
 
 
-TEST(create_with_negative_entry_fails) {
-    n_create_procedure(-1, 0, &ERR);
-    ASSERT(IS_ERROR(ERR, "nuvm.IllegalArgument"));
-}
-
 TEST(is_procedure_detects_procedure) {
-    NValue proc = n_create_procedure(0, 0, &ERR);
+    NValue proc = n_create_procedure(0, 0, 0, 1, &ERR);
     ASSERT(IS_OK(ERR));
     ASSERT(IS_TRUE(n_is_procedure(proc)));
 }
@@ -63,7 +58,7 @@ DD_TEST(is_procedure_rejects_other, other_iter, NValue, value) {
 
 TEST(type_of_procedure_is_correct) {
     NType *proc_type;
-    NValue proc = n_create_procedure(0, 0, &ERR);
+    NValue proc = n_create_procedure(0, 0, 0, 1, &ERR);
 
     ASSERT(IS_OK(ERR));
 
@@ -75,17 +70,17 @@ TEST(type_of_procedure_is_correct) {
 
 
 TEST(create_procedure_sets_entry) {
-    NValue proc = n_create_procedure(12345, 0, &ERR);
+    NValue proc = n_create_procedure(12345, 0, 0, 1, &ERR);
     NProcedure *proc_ptr;
     ASSERT(IS_OK(ERR));
 
     proc_ptr = (NProcedure*) n_unwrap_object(proc);
-    ASSERT(EQ_INT(proc_ptr->entry, 12345));
+    ASSERT(EQ_UINT(proc_ptr->entry, 12345));
 }
 
 
 TEST(create_procedure_sets_num_locals) {
-    NValue proc = n_create_procedure(12345, 123, &ERR);
+    NValue proc = n_create_procedure(12345, 123, 123, 1, &ERR);
     NProcedure *proc_ptr;
     ASSERT(IS_OK(ERR));
 
@@ -93,14 +88,52 @@ TEST(create_procedure_sets_num_locals) {
     ASSERT(EQ_UINT(proc_ptr->num_locals, 123));
 }
 
+
+TEST(create_procedure_sets_max_locals) {
+    NValue proc = n_create_procedure(12345, 123, 149, 1, &ERR);
+    NProcedure *proc_ptr;
+    ASSERT(IS_OK(ERR));
+
+    proc_ptr = (NProcedure*) n_unwrap_object(proc);
+    ASSERT(EQ_UINT(proc_ptr->max_locals, 149));
+}
+
+
+TEST(create_procedure_sets_size) {
+    NValue proc = n_create_procedure(12345, 123, 149, 1234, &ERR);
+    NProcedure *proc_ptr;
+    ASSERT(IS_OK(ERR));
+
+    proc_ptr = (NProcedure*) n_unwrap_object(proc);
+    ASSERT(EQ_UINT(proc_ptr->size, 1234));
+
+}
+
+
+TEST(procedure_needs_positive_size) {
+    n_create_procedure(12345, 123, 149, 0, &ERR);
+    ASSERT(IS_ERROR(ERR, "nuvm.IllegalArgument"));
+
+}
+
+
+TEST(max_locals_gte_num_locals) {
+    n_create_procedure(12345, 123, 122, 1, &ERR);
+    ASSERT(IS_ERROR(ERR, "nuvm.IllegalArgument"));
+}
+
+
 AtTest* tests[] = {
     &procedure_type_is_registered,
-    &create_with_negative_entry_fails,
     &is_procedure_detects_procedure,
     &is_procedure_rejects_other,
     &type_of_procedure_is_correct,
     &create_procedure_sets_entry,
     &create_procedure_sets_num_locals,
+    &create_procedure_sets_max_locals,
+    &create_procedure_sets_size,
+    &procedure_needs_positive_size,
+    &max_locals_gte_num_locals,
     NULL
 };
 

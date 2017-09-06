@@ -43,23 +43,23 @@ is_error_type(const char* expr, NError* err, NErrorType* type_name);
 
 #define TEST_RUNNER(NAME, TESTS, CR, DR, SU, TD)        \
 int main(int argc, char** argv) {                       \
-	AtTest** _tests = tests;                            \
-	AtStreamReporter* reporter = NULL;                  \
-	AtSuite* suite =                                    \
-		at_new_suite(NAME, CR, DR, SU, TD);             \
+    AtTest** _tests = tests;                            \
+    AtStreamReporter* reporter = NULL;                  \
+    AtSuite* suite =                                    \
+        at_new_suite(NAME, CR, DR, SU, TD);             \
                                                         \
-	while (*_tests) {                                   \
-		at_add_test(suite, *_tests);                    \
-		_tests++;                                       \
-	}                                                   \
+    while (*_tests) {                                   \
+        at_add_test(suite, *_tests);                    \
+        _tests++;                                       \
+    }                                                   \
                                                         \
-	if (argc > 1) {                                     \
-		const char* file_name = argv[1];                \
-		reporter = at_new_stream_reporter(file_name);   \
-	}                                                   \
+    if (argc > 1) {                                     \
+        const char* file_name = argv[1];                \
+        reporter = at_new_stream_reporter(file_name);   \
+    }                                                   \
                                                         \
-	at_run_suite(suite, (AtReporter*) reporter);        \
-	return 0;                                           \
+    at_run_suite(suite, (AtReporter*) reporter);        \
+    return 0;                                           \
 }
 
 #endif /* N_TEST_H */

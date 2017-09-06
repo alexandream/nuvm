@@ -15,7 +15,7 @@ struct NErrorType {
 struct NError {
     const NErrorType* type;
     const char* message;
-	const void* data;
+    const void* data;
     void (*clean_up)(const NErrorType*, NError*);
 };
 
@@ -40,8 +40,8 @@ ni_init_errors(void);
     NError* _n_e = ERROR; \
     _n_e->type = TYPE; \
     _n_e->message = MSG; \
-	_n_e->data = DATA; \
-	_n_e->clean_up = CLEAN; \
+    _n_e->data = DATA; \
+    _n_e->clean_up = CLEAN; \
 } while(0)
 
 #define n_is_ok(E) ((E)->type == NULL)

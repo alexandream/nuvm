@@ -1,5 +1,3 @@
-#include <stdio.h>
-
 #include "values.h"
 #include "primitives.h"
 #include "procedures.h"

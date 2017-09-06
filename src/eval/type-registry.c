@@ -52,7 +52,7 @@ register_type(NTypeRegistry* self, NType* type, NError* error);
 
 
 int ni_init_type_registry() {
-	static int INITIALIZED = 0;
+    static int INITIALIZED = 0;
     if (!INITIALIZED) {
         NError error = n_error_ok();
 
@@ -106,13 +106,13 @@ n_construct_type(NType* type, const char* name) {
 
 NType*
 n_find_type(const char* name, NError* error) {
-	return find_type(&DEFAULT_REGISTRY, name, error);
+    return find_type(&DEFAULT_REGISTRY, name, error);
 }
 
 
 void
 n_register_type(NType* type, NError* error) {
-	register_type(&DEFAULT_REGISTRY, type, error);
+    register_type(&DEFAULT_REGISTRY, type, error);
 }
 
 

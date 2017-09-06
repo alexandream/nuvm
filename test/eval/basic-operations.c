@@ -72,9 +72,9 @@ CONSTRUCTOR(constructor) {
         ERROR("Can't initialize evaluator module.", NULL);
     }
 
-	if (ni_init_all_values() < 0) {
-		ERROR("Can't initialize singletons module.", NULL);
-	}
+    if (ni_init_all_values() < 0) {
+        ERROR("Can't initialize singletons module.", NULL);
+    }
 
     TRUE_PRIMITIVE = n_create_primitive(true_function, &ERR);
     if (!n_is_ok(&ERR)) {
@@ -91,7 +91,7 @@ CONSTRUCTOR(constructor) {
         ERROR("Can't create copy primitive.", NULL);
     }
 
-    ENTRY_PROC = n_create_procedure(0, 0, &ERR);
+    ENTRY_PROC = n_create_procedure(0, 0, 0, 1, &ERR);
     if (!n_is_ok(&ERR)) {
         ERROR("Can't create module's entry procedure.", NULL);
     }
@@ -217,7 +217,7 @@ TEST(call_adds_4_plus_nargs_to_pc) {
 
 
 TEST(call_proc_sets_pc) {
-    NValue proc = n_create_procedure(17, 0, &ERR);
+    NValue proc = n_create_procedure(17, 0, 0, 1, &ERR);
     ASSERT(IS_OK(ERR));
 
     n_encode_op_call(CODE, 0, 1, 0);
@@ -230,7 +230,7 @@ TEST(call_proc_sets_pc) {
 
 
 TEST(call_proc_pushes_frame_pointer) {
-    NValue proc = n_create_procedure(0, 0, &ERR);
+    NValue proc = n_create_procedure(0, 0, 0, 1, &ERR);
     ASSERT(IS_OK(ERR));
 
     EVAL.fp = 12345;
@@ -245,7 +245,7 @@ TEST(call_proc_pushes_frame_pointer) {
 
 
 TEST(call_proc_pushes_ret_index) {
-    NValue proc = n_create_procedure(0, 0, &ERR);
+    NValue proc = n_create_procedure(0, 0, 0, 1, &ERR);
     ASSERT(IS_OK(ERR));
 
     n_encode_op_call(CODE, 9, 1, 0);
@@ -258,7 +258,7 @@ TEST(call_proc_pushes_ret_index) {
 
 
 TEST(call_proc_pushes_ret_addr) {
-    NValue proc = n_create_procedure(0, 0, &ERR);
+    NValue proc = n_create_procedure(0, 0, 0, 1, &ERR);
     ASSERT(IS_OK(ERR));
 
     n_encode_op_call(CODE, 9, 1, 3);
@@ -271,7 +271,7 @@ TEST(call_proc_pushes_ret_addr) {
 
 
 TEST(call_proc_pushes_arguments) {
-    NValue proc = n_create_procedure(0, 0, &ERR);
+    NValue proc = n_create_procedure(0, 0, 0, 1, &ERR);
     ASSERT(IS_OK(ERR));
 
     n_encode_op_call(CODE, 9, 1, 3);
@@ -302,7 +302,7 @@ TEST(call_proc_pushes_arguments) {
 
 
 TEST(call_proc_w_no_locals_adds_3_to_sp) {
-    NValue proc = n_create_procedure(0, 0, &ERR);
+    NValue proc = n_create_procedure(0, 0, 0, 1, &ERR);
     int sp_before_step;
     ASSERT(IS_OK(ERR));
 
@@ -318,7 +318,7 @@ TEST(call_proc_w_no_locals_adds_3_to_sp) {
 
 
 TEST(call_proc_adds_3_plus_nlocals_to_sp) {
-    NValue proc = n_create_procedure(0, 8, &ERR);
+    NValue proc = n_create_procedure(0, 8, 8, 1, &ERR);
     int sp_before_step;
     ASSERT(IS_OK(ERR));
 
@@ -382,7 +382,7 @@ TEST(call_stores_returned_value) {
 
 TEST(call_moves_fp_up_to_previous_sp) {
     int previous_sp = EVAL.sp;
-    NValue proc = n_create_procedure(0, 0, &ERR);
+    NValue proc = n_create_procedure(0, 0, 0, 1, &ERR);
     n_encode_op_call(CODE, 0, 1, 0);
     n_evaluator_set_local(&EVAL, 1, proc, &ERR);
 

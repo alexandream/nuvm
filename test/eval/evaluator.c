@@ -46,7 +46,7 @@ CONSTRUCTOR(constructor) {
         ERROR("Can't create module.", NULL);
     }
 
-    PROC = n_create_procedure(PROC_ENTRY, 2, &error);
+    PROC = n_create_procedure(PROC_ENTRY, 2, 2, 1, &error);
     if (!n_is_ok(&error)) {
         ERROR("Can't create module's entry procedure.", NULL);
     }
