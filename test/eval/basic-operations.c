@@ -96,7 +96,7 @@ CONSTRUCTOR(constructor) {
         ERROR("Can't create module's entry procedure.", NULL);
     }
 
-    MOD = n_new_module(&ERR);
+    MOD = n_create_module(&ERR);
     if (!n_is_ok(&ERR)) {
         ERROR("Can't create module.", NULL);
     }

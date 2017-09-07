@@ -24,7 +24,7 @@ ni_init_modules(void);
 
 
 NModule*
-n_new_module(NError *error);
+n_create_module(NError *error);
 
 
 #endif /* N_E_MODULE_H */

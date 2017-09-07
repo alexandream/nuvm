@@ -41,7 +41,7 @@ CONSTRUCTOR(constructor) {
         ERROR("Can't initialize evaluator module.", NULL);
     }
 
-    MOD = n_new_module(&error);
+    MOD = n_create_module(&error);
     if (!n_is_ok(&error)) {
         ERROR("Can't create module.", NULL);
     }

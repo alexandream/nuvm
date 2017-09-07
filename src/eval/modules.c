@@ -27,7 +27,7 @@ ni_init_modules(void) {
 
 
 NModule*
-n_new_module(NError *error) {
+n_create_module(NError *error) {
     NModule *self = malloc(sizeof(NModule));
     if (self == NULL) {
         n_set_error(error, BAD_ALLOCATION, "Unable to allocate module",
@@ -38,5 +38,6 @@ n_new_module(NError *error) {
     self->code_size = 0;
     self->registers = NULL;
     self->num_registers = 0;
+    self->entry_point = 0;
     return self;
 }
