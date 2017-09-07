@@ -54,7 +54,7 @@ ni_init_singletons() {
         INITIALIZED = 1;
     }
     return 0;
-}   
+}
 
 
 int

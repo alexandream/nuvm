@@ -7,6 +7,9 @@
 static
 NErrorType* INVALID_MODULE_FORMAT = NULL;
 
+static
+NErrorType* UNEXPECTED_EOF = NULL;
+
 static NValue
 read_global(NByteReader* reader, NError* error);
 
@@ -25,8 +28,52 @@ ni_init_loader(void) {
             n_destroy_error(&error);
             return -1;
         }
+
+        UNEXPECTED_EOF = n_error_type("nuvm.UnexpectedEoF", &error);
+        if (!n_is_ok(&error)) {
+            n_destroy_error(&error);
+            return -2;
+        }
     }
     return 0;
+}
+
+
+NModule*
+n_read_module(NByteReader* reader, NError* error) {
+#define CHECK_ERROR ON_ERROR_GOTO(error, clean_up)
+    uint16_t num_globals;
+    uint32_t code_size;
+    uint16_t i;
+    int bytes_read;
+    NModule* module = NULL;
+
+    num_globals = n_read_uint16(reader, error);                CHECK_ERROR;
+    code_size = n_read_uint32(reader, error);                  CHECK_ERROR;
+
+    module = n_create_module(num_globals, code_size, error);   CHECK_ERROR;
+
+    for (i = 0; i < num_globals; i++) {
+        NValue global = read_global(reader, error);            CHECK_ERROR;
+        module->globals[i] = global;
+    }
+
+    bytes_read =
+        n_read_bytes(reader, module->code, code_size, error);  CHECK_ERROR;
+
+    if ((uint32_t) bytes_read != code_size) {
+        n_set_error(error, UNEXPECTED_EOF, "Not enough bytes in the stream "
+                    "to load the code for the module.", NULL, NULL);
+        goto clean_up;
+    }
+
+    return module;
+clean_up:
+    if (module != NULL) {
+        n_destroy_module(module);
+    }
+    return NULL;
+#undef CHECK_ERROR
 }
 
 
@@ -65,7 +112,7 @@ read_global(NByteReader* reader, NError* error) {
         case 0x01:
             return nt_read_procedure_global(reader, error);
         default:
-            n_set_error(error, INVALID_MODULE_FORMAT, 
+            n_set_error(error, INVALID_MODULE_FORMAT,
                     "Unrecognized global descriptor id.", NULL, NULL);
     }
     return 0;

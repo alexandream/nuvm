@@ -141,13 +141,13 @@ void n_evaluator_run(NEvaluator *self, NError *error) {
 
 
 NValue
-n_evaluator_get_register(NEvaluator *self, int index, NError *error) {
-    if (index < self->current_module->num_registers) {
-        return self->current_module->registers[index];
+n_evaluator_get_global(NEvaluator *self, int index, NError *error) {
+    if (index < self->current_module->num_globals) {
+        return self->current_module->globals[index];
     }
     else {
         n_set_error(error, &INDEX_OO_BOUNDS, "The given index is larger "
-                    "than the number of addressable registers "
+                    "than the number of addressable globals "
                     "in this evaluator.", NULL, NULL);
         return N_UNKNOWN;
 
@@ -172,7 +172,7 @@ n_prepare_evaluator(NEvaluator *self, NModule *module, NError *error) {
     NValue entry_val;
     NProcedure* entry_proc;
 
-    entry_val = module->registers[module->entry_point];
+    entry_val = module->globals[module->entry_point];
 
     if (!n_is_procedure(entry_val)) {
         n_set_error(error, ILLEGAL_ARGUMENT, "Value on the entry point of "
@@ -263,7 +263,7 @@ op_call(NEvaluator *self, unsigned char *stream, NError *error) {
         self->stack[self->fp] = previous_fp;
         self->stack[self->fp +1] = dest;
         self->stack[self->fp +2] = next_pc;
-        /* Make space for the saved registers, locals and arguments. */
+        /* Make space for the saved globals, locals and arguments. */
         self->sp += 3 + proc->num_locals + n_args;
         for (i = 0; i < n_args; i++) {
             uint8_t arg_index = stream[size + i];
@@ -337,7 +337,7 @@ op_global_ref(NEvaluator *self, unsigned char *stream, NError *error) {
     uint16_t source;
     int size = n_decode_op_global_ref(stream, &dest, &source);
 
-    set_local(self, dest, self->current_module->registers[source]);
+    set_local(self, dest, self->current_module->globals[source]);
     return size;
 }
 
@@ -348,7 +348,7 @@ op_global_set(NEvaluator *self, unsigned char *stream, NError *error) {
     uint8_t source;
     int size = n_decode_op_global_set(stream, &dest, &source);
 
-    self->current_module->registers[dest] = get_local(self, source);
+    self->current_module->globals[dest] = get_local(self, source);
     return size;
 }
 

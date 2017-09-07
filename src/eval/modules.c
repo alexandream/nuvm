@@ -27,17 +27,51 @@ ni_init_modules(void) {
 
 
 NModule*
-n_create_module(NError *error) {
+n_create_module(uint16_t num_globals, uint32_t code_size, NError *error) {
     NModule *self = malloc(sizeof(NModule));
     if (self == NULL) {
         n_set_error(error, BAD_ALLOCATION, "Unable to allocate module",
                     NULL, NULL);
-        return NULL;
+        goto clean_up;
     }
     self->code = NULL;
-    self->code_size = 0;
-    self->registers = NULL;
-    self->num_registers = 0;
+    self->globals = NULL;
+
+    self->code = malloc(sizeof(unsigned char) * code_size);
+    if (self->code == NULL) {
+        n_set_error(error, BAD_ALLOCATION, "Unable to allocate module",
+                    NULL, NULL);
+        goto clean_up;
+    }
+
+    self->globals = malloc(sizeof(NValue) * num_globals);
+    if (self->globals == NULL) {
+        n_set_error(error, BAD_ALLOCATION, "Unable to allocate module",
+                    NULL, NULL);
+        goto clean_up;
+    }
+
+    self->code_size = code_size;
+    self->num_globals = num_globals;
     self->entry_point = 0;
     return self;
+
+clean_up:
+    n_destroy_module(self);
+    return NULL;
+}
+
+
+void
+n_destroy_module(NModule* self) {
+    if (self != NULL) {
+        if (self->code != NULL) {
+            free(self->code);
+        }
+        if (self->globals != NULL) {
+            free(self->globals);
+        }
+
+        free(self);
+    }
 }

@@ -15,11 +15,11 @@
 #define NUM_REGISTERS 16
 
 static
-unsigned char CODE[CODE_SIZE];
+unsigned char *CODE;
 
 
 static
-NValue REGISTERS[NUM_REGISTERS];
+NValue *REGISTERS;
 
 
 static
@@ -41,13 +41,17 @@ CONSTRUCTOR(constructor) {
         ERROR("Can't initialize evaluator module.", NULL);
     }
 
-    MOD = n_create_module(&error);
+    MOD = n_create_module(NUM_REGISTERS, CODE_SIZE, &error);
     if (!n_is_ok(&error)) {
+        n_destroy_error(&error);
         ERROR("Can't create module.", NULL);
     }
+    REGISTERS = MOD->globals;
+    CODE = MOD->code;
 
     PROC = n_create_procedure(PROC_ENTRY, 2, 2, 1, &error);
     if (!n_is_ok(&error)) {
+        n_destroy_error(&error);
         ERROR("Can't create module's entry procedure.", NULL);
     }
 
@@ -65,14 +69,9 @@ SETUP(setup) {
     }
     nt_construct_evaluator(&EVAL);
 
-    MOD->code = CODE;
-    MOD->code_size = CODE_SIZE;
-    MOD->registers = REGISTERS;
-    MOD->num_registers = NUM_REGISTERS;
     MOD->entry_point = 15;
 
     REGISTERS[15] = PROC;
-
 }
 
 
@@ -147,13 +146,13 @@ TEST(fp_starts_on_zero) {
 }
 
 
-TEST(get_register_gives_correct_value) {
+TEST(get_global_gives_correct_value) {
     NValue value;
     NError error = n_error_ok();
 
     REGISTERS[3] = n_wrap_fixnum(99);
 
-    value = n_evaluator_get_register(&EVAL, 3, &error);
+    value = n_evaluator_get_global(&EVAL, 3, &error);
 
     ASSERT(IS_OK(error));
     ASSERT(EQ_INT(n_unwrap_fixnum(value), 99));
@@ -161,9 +160,9 @@ TEST(get_register_gives_correct_value) {
 
 
 
-TEST(get_register_detects_out_of_range) {
+TEST(get_global_detects_out_of_range) {
     NError error = n_error_ok();
-    n_evaluator_get_register(&EVAL, NUM_REGISTERS, &error);
+    n_evaluator_get_global(&EVAL, NUM_REGISTERS, &error);
 
     ASSERT(IS_ERROR(error, "nuvm.IndexOutOfBounds"));
 }
@@ -222,8 +221,8 @@ AtTest* tests[] = {
     &evaluator_starts_halted,
     &sp_starts_on_zero,
     &fp_starts_on_zero,
-    &get_register_gives_correct_value,
-    &get_register_detects_out_of_range,
+    &get_global_gives_correct_value,
+    &get_global_detects_out_of_range,
     &prepare_pushes_dummy_frame,
     &prepare_adds_num_locals_to_sp,
     &prepare_sets_pc_to_proc_entry,

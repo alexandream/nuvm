@@ -55,7 +55,7 @@ run_all_tests() {
         echo "Running test runner ${R}."
     fi
     ${R} > ${REPORT}
-  done 
+  done
 }
 
 

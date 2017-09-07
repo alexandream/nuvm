@@ -37,7 +37,7 @@ void
 n_evaluator_run(NEvaluator *self, NError *error);
 
 NValue
-n_evaluator_get_register(NEvaluator *self, int index, NError *error);
+n_evaluator_get_global(NEvaluator *self, int index, NError *error);
 
 NValue
 n_evaluator_get_local(NEvaluator *self, int index, NError *error);

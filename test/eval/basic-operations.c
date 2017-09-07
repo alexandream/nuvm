@@ -23,11 +23,11 @@ typedef struct {
 
 
 static
-unsigned char CODE[CODE_SIZE];
+unsigned char *CODE;
 
 
 static
-NValue REGISTERS[NUM_REGISTERS];
+NValue *REGISTERS;
 
 static
 NValue COPY_RESULT[NUM_REGISTERS];
@@ -96,10 +96,12 @@ CONSTRUCTOR(constructor) {
         ERROR("Can't create module's entry procedure.", NULL);
     }
 
-    MOD = n_create_module(&ERR);
+    MOD = n_create_module(NUM_REGISTERS, CODE_SIZE, &ERR);
     if (!n_is_ok(&ERR)) {
         ERROR("Can't create module.", NULL);
     }
+    CODE = MOD->code;
+    REGISTERS = MOD->globals;
 }
 
 
@@ -114,12 +116,8 @@ SETUP(setup) {
     }
 
     nt_construct_evaluator(&EVAL);
-    MOD->code = CODE;
-    MOD->code_size = CODE_SIZE;
-    MOD->registers = REGISTERS;
-    MOD->num_registers = NUM_REGISTERS;
     MOD->entry_point = 15;
-    MOD->registers[15] = ENTRY_PROC;
+    REGISTERS[15] = ENTRY_PROC;
 
     n_prepare_evaluator(&EVAL, MOD, &ERR);
     if (!n_is_ok(&ERR)) {
@@ -518,7 +516,7 @@ TEST(global_set_copies_values) {
 
     ASSERT(IS_OK(ERR));
     {
-        NValue result = n_evaluator_get_register(&EVAL, 9, &ERR);
+        NValue result = n_evaluator_get_global(&EVAL, 9, &ERR);
         ASSERT(IS_OK(ERR));
         ASSERT(IS_TRUE(n_eq_values(result, N_TRUE)));
     }

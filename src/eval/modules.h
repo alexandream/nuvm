@@ -12,10 +12,10 @@ typedef struct NModule NModule;
 
 struct NModule {
     unsigned char *code;
-    int code_size;
-    NValue *registers;
-    int num_registers;
-    int entry_point;
+    uint32_t code_size;
+    NValue *globals;
+    uint16_t num_globals;
+    uint32_t entry_point;
 };
 
 
@@ -24,7 +24,10 @@ ni_init_modules(void);
 
 
 NModule*
-n_create_module(NError *error);
+n_create_module(uint16_t num_globals, uint32_t code_size, NError *error);
+
+void
+n_destroy_module(NModule* self);
 
 
 #endif /* N_E_MODULE_H */
