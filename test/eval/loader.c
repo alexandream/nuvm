@@ -19,6 +19,10 @@ CONSTRUCTOR(constructor) {
     if (ni_init_all_values() < 0) {
         ERROR("Can't initialize values module.", NULL);
     }
+
+    if (ni_init_loader() < 0) {
+        ERROR("Can't initialize loader module.", NULL);
+    }
 }
 
 
@@ -50,7 +54,7 @@ TEST(load_fixnum32_loads_min) {
 
     fixnum = nt_read_fixnum32_global(reader, &ERR);
     ASSERT(IS_OK(ERR));
-    ASSERT(EQ_INT(fixnum, -2147483648));
+    ASSERT(EQ_INT(n_unwrap_fixnum(fixnum), -2147483648));
 }
 
 
@@ -62,7 +66,7 @@ TEST(load_fixnum32_loads_max) {
 
     fixnum = nt_read_fixnum32_global(reader, &ERR);
     ASSERT(IS_OK(ERR));
-    ASSERT(EQ_INT(fixnum, 2147483647));
+    ASSERT(EQ_INT(n_unwrap_fixnum(fixnum), 2147483647));
 }
 
 
@@ -74,7 +78,7 @@ TEST(load_fixnum32_loads_zero) {
 
     fixnum = nt_read_fixnum32_global(reader, &ERR);
     ASSERT(IS_OK(ERR));
-    ASSERT(EQ_INT(fixnum, 0));
+    ASSERT(EQ_INT(n_unwrap_fixnum(fixnum), 0));
 }
 
 
@@ -110,6 +114,51 @@ TEST(load_procedure_loads_correctly) {
 }
 
 
+TEST(load_global_rejects_unknown_id) {
+    uint8_t data[] = { 0x02 };
+
+    NByteReader* reader = n_new_byte_reader_from_data(data, 1, &ERR);
+    ASSERT(IS_OK(ERR));
+
+    nt_read_global(reader, &ERR);
+    ASSERT(IS_ERROR(ERR, "nuvm.InvalidModuleFormat"));
+}
+
+
+TEST(load_global_detects_procedure) {
+    NValue proc;
+    NProcedure* proc_ptr;
+    uint8_t data[] = { 0x01, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07 };
+
+    NByteReader* reader = n_new_byte_reader_from_data(data, 9, &ERR);
+    ASSERT(IS_OK(ERR));
+
+    proc = nt_read_global(reader, &ERR);
+    ASSERT(IS_OK(ERR));
+    ASSERT(IS_TRUE(n_is_procedure(proc)));
+
+    proc_ptr = (NProcedure*) n_unwrap_object(proc);
+
+    ASSERT(EQ_INT(proc_ptr->entry, 0x03020100));
+    ASSERT(EQ_INT(proc_ptr->num_locals, 0x04));
+    ASSERT(EQ_INT(proc_ptr->max_locals, 0x05));
+    ASSERT(EQ_INT(proc_ptr->size, 0x0706));
+}
+
+
+TEST(load_global_detects_fixnum32) {
+    NValue fixnum;
+    uint8_t data[] = { 0x00, 0xFF, 0xFF, 0xFF, 0x7F };
+    NByteReader* reader = n_new_byte_reader_from_data(data, 5, &ERR);
+    ASSERT(IS_OK(ERR));
+
+    fixnum = nt_read_global(reader, &ERR);
+    ASSERT(IS_OK(ERR));
+    ASSERT(EQ_INT(n_unwrap_fixnum(fixnum), 2147483647));
+}
+
+
+
 AtTest* tests[] = {
     &load_fixnum32_needs_4_bytes,
     &load_fixnum32_loads_min,
@@ -117,6 +166,9 @@ AtTest* tests[] = {
     &load_fixnum32_loads_zero,
     &load_procedure_needs_8_bytes,
     &load_procedure_loads_correctly,
+    &load_global_rejects_unknown_id,
+    &load_global_detects_procedure,
+    &load_global_detects_fixnum32,
     NULL
 };
 

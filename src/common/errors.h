@@ -35,6 +35,8 @@ n_error_type(const char* name, NError* error);
 int
 ni_init_errors(void);
 
+#define ON_ERROR_RETURN(E, V) if (!n_is_ok(E)) return V
+#define ON_ERROR_GOTO(E, L) if (!n_is_ok(E)) goto L
 
 #define n_set_error(ERROR,TYPE,MSG, DATA, CLEAN) do { \
     NError* _n_e = ERROR; \

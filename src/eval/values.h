@@ -7,10 +7,10 @@ typedef struct NObject NObject;
 typedef struct NType NType;
 
 typedef intptr_t NValue;
-typedef short NFixnum;
+typedef int32_t NFixnum;
 
-#define N_FIXNUM_MIN ((NFixnum) -32768)
-#define N_FIXNUM_MAX ((NFixnum)  32767)
+#define N_FIXNUM_MIN ((NFixnum) -2147483648)
+#define N_FIXNUM_MAX ((NFixnum)  2147483647)
 
 #define n_eq_values(LEFT, RIGHT) ((LEFT) == (RIGHT))
 

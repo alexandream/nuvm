@@ -21,6 +21,7 @@ NErrorType ERROR_TYPES[] = {
     { "nuvm.error.InvalidName", NULL },
     { "nuvm.error.RepeatedName", NULL },
     { "nuvm.error.UnknownErrorType", NULL },
+    { "nuvm.InvalidModuleFormat", NULL },
 
     { NULL, NULL }
 };

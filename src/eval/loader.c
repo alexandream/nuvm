@@ -4,28 +4,94 @@
 #include "loader.h"
 #include "procedures.h"
 
+static
+NErrorType* INVALID_MODULE_FORMAT = NULL;
+
+static NValue
+read_global(NByteReader* reader, NError* error);
+
+
+
+
+int
+ni_init_loader(void) {
+    static int INITIALIZED = 0;
+    NError error = n_error_ok();
+    if (!INITIALIZED) {
+        INVALID_MODULE_FORMAT =
+            n_error_type("nuvm.InvalidModuleFormat", &error);
+
+        if (!n_is_ok(&error)) {
+            n_destroy_error(&error);
+            return -1;
+        }
+    }
+    return 0;
+}
+
+
+
+
+static NValue
+read_fixnum32_global(NByteReader* reader, NError* error) {
+    return n_wrap_fixnum(n_read_int32(reader, error));
+}
+
+
+static NValue
+read_procedure_global(NByteReader* reader, NError* error) {
+#define CHECK_ERROR ON_ERROR_RETURN(error, 0);
+    uint32_t entry;
+    uint8_t min_locals, max_locals;
+    uint16_t size;
+
+    entry = n_read_uint32(reader, error);               CHECK_ERROR;
+    min_locals = n_read_byte(reader, error);            CHECK_ERROR;
+    max_locals = n_read_byte(reader, error);            CHECK_ERROR;
+    size = n_read_uint16(reader, error);                CHECK_ERROR;
+
+    return n_create_procedure(entry, min_locals, max_locals, size, error);
+#undef CHECK_ERROR
+}
+
+
+static NValue
+read_global(NByteReader* reader, NError* error) {
+#define CHECK_ERROR ON_ERROR_RETURN(error, 0);
+    uint8_t type = n_read_byte(reader, error);          CHECK_ERROR;
+    switch (type) {
+        case 0x00:
+            return nt_read_fixnum32_global(reader, error);
+        case 0x01:
+            return nt_read_procedure_global(reader, error);
+        default:
+            n_set_error(error, INVALID_MODULE_FORMAT, 
+                    "Unrecognized global descriptor id.", NULL, NULL);
+    }
+    return 0;
+#undef CHECK_ERROR
+}
+
+
+
+
 #ifdef N_TEST
 
 NValue
 nt_read_fixnum32_global(NByteReader* reader, NError* error) {
-    return n_read_int32(reader, error);
+    return read_fixnum32_global(reader, error);
 }
 
 
 NValue
 nt_read_procedure_global(NByteReader* reader, NError* error) {
-#define ROR if (!n_is_ok(error)) return 0
-    uint32_t entry;
-    uint8_t min_locals, max_locals;
-    uint16_t size;
+    return read_procedure_global(reader, error);
+}
 
-    entry = n_read_uint32(reader, error);               ROR;
-    min_locals = n_read_byte(reader, error);           ROR;
-    max_locals = n_read_byte(reader, error);           ROR;
-    size = n_read_uint16(reader, error);                ROR;
 
-    return n_create_procedure(entry, min_locals, max_locals, size, error);
-#undef ROR
+NValue
+nt_read_global(NByteReader* reader, NError* error) {
+    return read_global(reader, error);
 }
 
 #endif /*N_TEST*/
