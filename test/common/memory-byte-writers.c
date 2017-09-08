@@ -264,4 +264,4 @@ AtTest* tests[] = {
 };
 
 
-TEST_RUNNER("ByteWriters", tests, constructor, NULL, setup, teardown)
+TEST_RUNNER("MemoryByteWriters", tests, constructor, NULL, setup, teardown)
