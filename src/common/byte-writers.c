@@ -33,6 +33,9 @@ NByteWriterVTable MEMORY_VTABLE;
 static
 NErrorType* BAD_ALLOCATION = NULL;
 
+static
+NErrorType* OVERFLOW = NULL;
+
 static void
 construct_byte_writer(NByteWriter*, NByteWriterVTable*);
 
@@ -72,6 +75,12 @@ ni_init_byte_writers(void){
     if (!n_is_ok(&error)) {
         n_destroy_error(&error);
         return -2;
+    }
+
+    BAD_ALLOCATION = n_error_type("nuvm.Overflow", &error);
+    if (!n_is_ok(&error)) {
+        n_destroy_error(&error);
+        return -3;
     }
 
     MEMORY_VTABLE.write_byte = memory_write_byte;
@@ -159,33 +168,90 @@ construct_byte_writer(NByteWriter* self, NByteWriterVTable* vtable) {
 }
 
 
-static void
-memory_write_byte(NByteWriter* self, uint8_t value,  NError* error) {
+static size_t
+memory_trunc_size_to_available(NMemoryByteWriter* self, size_t size) {
+    size_t available_bytes = self->size - self->current_index;
+    return (available_bytes < size) ? available_bytes : size;
+}
 
+
+static int
+assert_readable_size(NMemoryByteWriter *self, size_t size, NError *error) {
+    size_t available = memory_trunc_size_to_available(self, size);
+    if (available < size) {
+        n_set_error(error, OVERFLOW, "Depleted buffer while trying to "
+                    "write on byte writer.", NULL, NULL);
+        return 0;
+    }
+    return 1;
 }
 
 
 static void
-memory_write_u16(NByteWriter* self,  uint16_t value, NError* error) {
+memory_write_byte(NByteWriter* generic_self, uint8_t value,  NError* error) {
+    NMemoryByteWriter* self = (NMemoryByteWriter*) generic_self;
+    uint8_t* b = (uint8_t*) self->buffer + self->current_index;
 
+    if (!assert_readable_size(self, 1, error)) return;
+
+    self->current_index += 1;
+    *b = value;
 }
 
 
 static void
-memory_write_i16(NByteWriter* self,  int16_t value,  NError* error) {
+memory_write_u16(NByteWriter* generic_self,  uint16_t value, NError* error) {
+    NMemoryByteWriter* self = (NMemoryByteWriter*) generic_self;
+    uint8_t* b = (uint8_t*) self->buffer + self->current_index;
 
+    if (!assert_readable_size(self, 2, error)) return;
+
+    self->current_index += 2;
+    b[0] = (uint8_t) (value & 0x00FF);
+    b[1] = (uint8_t) ((value & 0xFFFF) >> 8);
 }
 
 
 static void
-memory_write_u32(NByteWriter* self,  uint32_t value, NError* error) {
+memory_write_i16(NByteWriter* generic_self,  int16_t value,  NError* error) {
+    NMemoryByteWriter* self = (NMemoryByteWriter*) generic_self;
+    uint8_t* b = (uint8_t*) self->buffer + self->current_index;
 
+    if (!assert_readable_size(self, 2, error)) return;
+
+    self->current_index += 2;
+    b[0] = (uint8_t) (value & 0x00FF);
+    b[1] = (uint8_t) ((value & 0xFF00) >> 8);
 }
 
 
 static void
-memory_write_i32(NByteWriter* self,  int32_t value,  NError* error) {
+memory_write_u32(NByteWriter* generic_self,  uint32_t value, NError* error) {
+    NMemoryByteWriter* self = (NMemoryByteWriter*) generic_self;
+    uint8_t* b = (uint8_t*) self->buffer + self->current_index;
 
+    if (!assert_readable_size(self, 4, error)) return;
+
+    self->current_index += 4;
+    b[0] = (uint8_t) (value & 0x000000FF);
+    b[1] = (uint8_t) ((value & 0x0000FF00) >> 8);
+    b[2] = (uint8_t) ((value & 0x00FF0000) >> 16);
+    b[3] = (uint8_t) ((value & 0xFF000000) >> 24);
+}
+
+
+static void
+memory_write_i32(NByteWriter* generic_self,  int32_t value,  NError* error) {
+    NMemoryByteWriter* self = (NMemoryByteWriter*) generic_self;
+    uint8_t* b = (uint8_t*) self->buffer + self->current_index;
+
+    if (!assert_readable_size(self, 4, error)) return;
+
+    self->current_index += 4;
+    b[0] = (uint8_t) (value & 0x000000FF);
+    b[1] = (uint8_t) ((value & 0x0000FF00) >> 8);
+    b[2] = (uint8_t) ((value & 0x00FF0000) >> 16);
+    b[3] = (uint8_t) ((value & 0xFF000000) >> 24);
 }
 
 

@@ -11,7 +11,7 @@ NByteWriter *WRITER = NULL;
 #define BUFFER_SIZE 256
 
 static
-char BUFFER[BUFFER_SIZE];
+uint8_t BUFFER[BUFFER_SIZE];
 
 static
 NError ERR;
@@ -228,7 +228,7 @@ TEST(write_uint32_puts_maximum) {
 }
 
 
-TEST(write_uint32_takes_2_bytes) {
+TEST(write_uint32_takes_4_bytes) {
     uint32_t value;
 
     n_write_uint32(WRITER, 0, &ERR);
@@ -237,7 +237,7 @@ TEST(write_uint32_takes_2_bytes) {
     n_write_uint32(WRITER, 1234567890, &ERR);
     ASSERT(IS_OK(ERR));
 
-    memcpy(&value, BUFFER+2, sizeof(uint32_t));
+    memcpy(&value, BUFFER+4, sizeof(uint32_t));
     ASSERT(EQ_UINT(value, 1234567890));
 }
 
@@ -259,7 +259,7 @@ AtTest* tests[] = {
     &write_int32_takes_4_bytes,
     &write_uint32_puts_zero,
     &write_uint32_puts_maximum,
-    &write_uint32_takes_2_bytes,
+    &write_uint32_takes_4_bytes,
     NULL
 };
 
