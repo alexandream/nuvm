@@ -24,7 +24,7 @@ struct NAnchorMapVTable {
 
 
 struct NAnchorMap {
-    NAnchorMapVTable vtable;
+    NAnchorMapVTable* vtable;
 };
 
 
@@ -62,10 +62,10 @@ NProtoInstruction
 n_proto_halt();
 
 NProtoInstruction
-n_proto_jump_unless(uint8_t cond, int16_t offset);
+n_proto_jump_unless(uint8_t cond, uint16_t anchor);
 
 NProtoInstruction
-n_proto_jump(int16_t offset);
+n_proto_jump(uint16_t anchor);
 
 NProtoInstruction
 n_proto_call(uint8_t dest, uint8_t target, uint8_t n_args, uint8_t* args,

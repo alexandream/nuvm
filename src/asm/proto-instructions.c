@@ -1,5 +1,6 @@
 #include "../common/compatibility/stdint.h"
 #include "../common/errors.h"
+#include "../common/opcodes.h"
 #include "../common/byte-writers.h"
 
 #include "proto-instructions.h"
@@ -20,6 +21,8 @@ void init_vtables(void);
 static
 NErrorType* BAD_ALLOCATION = NULL;
 
+static
+NErrorType* ILLEGAL_ARGUMENT = NULL;
 
 int
 ni_init_proto_instructions(void) {
@@ -35,6 +38,12 @@ ni_init_proto_instructions(void) {
         if (!n_is_ok(&error)) {
             n_destroy_error(&error);
             return -2;
+        }
+
+        ILLEGAL_ARGUMENT = n_error_type("nuvm.IllegalArgument", &error);
+        if (!n_is_ok(&error)) {
+            n_destroy_error(&error);
+            return -3;
         }
 
         init_vtables();
@@ -90,20 +99,24 @@ n_proto_halt() {
 
 
 NProtoInstruction
-n_proto_jump_unless(uint8_t cond, int16_t offset) {
+n_proto_jump_unless(uint8_t cond, uint16_t anchor) {
     NProtoInstruction result;
     result.vtable = &JUMP_UNLESS_VTABLE;
     result.u8s[0] = cond;
-    result.i16s[0] = offset;
+    result.u16s[0] = anchor;
+    /* Mark flag to indicate the labels haven't been resolved. */
+    result.u8s[2] = 1;
     return result;
 }
 
 
 NProtoInstruction
-n_proto_jump(int16_t offset) {
+n_proto_jump(uint16_t anchor) {
     NProtoInstruction result;
     result.vtable = &JUMP_VTABLE;
-    result.i16s[0] = offset;
+    result.u16s[0] = anchor;
+    /* Mark flag to indicate the labels haven't been resolved. */
+    result.u8s[2] = 1;
     return result;
 }
 
@@ -165,63 +178,115 @@ n_proto_return(uint8_t source) {
 
 static uint16_t
 nop_size(NProtoInstruction* self) {
-    return 0;
+    return 1;
 }
 
 
 static void
 nop_emit(NByteWriter* writer, NProtoInstruction* instr, NError* error) {
-
+    n_write_byte(writer, N_OP_NOP, error);
 }
 
 
 static uint16_t
 halt_size(NProtoInstruction* self) {
-    return 0;
+    return 1;
 }
 
 
 static void
 halt_emit(NByteWriter* writer, NProtoInstruction* instr, NError* error) {
-
+    n_write_byte(writer, N_OP_HALT, error);
 }
 
 
 static uint16_t
 jump_unless_size(NProtoInstruction* self) {
-    return 0;
+    return 4;
 }
 
 
 static void
 jump_unless_emit(NByteWriter* writer, NProtoInstruction* instr, NError* error) {
-
+#define VOID
+#define CHECK_ERROR ON_ERROR_RETURN(error, VOID)
+    if (instr->u8s[2]) {
+        /* Anchors were not resolved, somethings is very wrong. */
+        n_set_error(error, ILLEGAL_ARGUMENT, "Trying to emit a Jump Unless "
+                    "proto instruction without resolving anchors.",
+                    NULL, NULL);
+        return;
+    }
+    n_write_byte(writer, N_OP_JUMP_UNLESS, error);                 CHECK_ERROR;
+    n_write_byte(writer, instr->u8s[0], error);                    CHECK_ERROR;
+    n_write_int16(writer, instr->i16s[0], error);
+#undef CHECK_ERROR
+#undef VOID
 }
 
 
 static void
-jump_unless_resolve_anchors(NProtoInstruction* self, uint16_t offset,
-                            NAnchorMap* anchor_map, NError* eror) {
+jump_unless_resolve_anchors(NProtoInstruction* self, uint16_t own_offset,
+                            NAnchorMap* anchor_map, NError* error) {
+    uint16_t anchor_offset;
+    int16_t offset;
 
+    if (!anchor_map->vtable->has_anchor(anchor_map, self->u16s[0])) {
+        n_set_error(error, ILLEGAL_ARGUMENT, "Anchor not found while trying "
+                    "to resolve Jump Unless instruction.",
+                    NULL, NULL);
+        return;
+    }
+    anchor_offset = anchor_map->vtable->get_offset(anchor_map, self->u16s[0]);
+    offset = (int16_t) (((int32_t) own_offset) - ((int32_t) anchor_offset));
+    self->i16s[0] = offset;
+    /* Unmark the flag to indicate anchors were already resolved. */
+    self->u8s[2] = 0;
 }
 
 
 static uint16_t
 jump_size(NProtoInstruction* self) {
-    return 0;
+    return 3;
 }
 
 
 static void
 jump_emit(NByteWriter* writer, NProtoInstruction* instr, NError* error) {
+#define VOID
+#define CHECK_ERROR ON_ERROR_RETURN(error, VOID)
+    if (instr->u8s[2]) {
+        /* Anchors were not resolved, somethings is very wrong. */
+        n_set_error(error, ILLEGAL_ARGUMENT, "Trying to emit a Jump proto "
+                    "instruction without resolving anchors.",
+                    NULL, NULL);
+        return;
+    }
+    n_write_byte(writer, N_OP_JUMP, error);                       CHECK_ERROR;
+    n_write_int16(writer, instr->i16s[0], error);
+#undef CHECK_ERROR
+#undef VOID
 
 }
 
 
 static void
-jump_resolve_anchors(NProtoInstruction* self, uint16_t offset,
-                  NAnchorMap* anchor_map, NError* eror) {
+jump_resolve_anchors(NProtoInstruction* self, uint16_t own_offset,
+                  NAnchorMap* anchor_map, NError* error) {
+    uint16_t anchor_offset;
+    int16_t offset;
 
+    if (!anchor_map->vtable->has_anchor(anchor_map, self->u16s[0])) {
+        n_set_error(error, ILLEGAL_ARGUMENT, "Anchor not found while trying "
+                    "to resolve Jump instruction.",
+                    NULL, NULL);
+        return;
+    }
+    anchor_offset = anchor_map->vtable->get_offset(anchor_map, self->u16s[0]);
+    offset = (int16_t) (((int32_t) own_offset) - ((int32_t) anchor_offset));
+    self->i16s[0] = offset;
+    /* Unmark the flag to indicate anchors were already resolved. */
+    self->u8s[2] = 0;
 }
 
 
@@ -233,6 +298,20 @@ call_size(NProtoInstruction* self) {
 
 static void
 call_emit(NByteWriter* writer, NProtoInstruction* instr, NError* error) {
+#define VOID
+#define CHECK_ERROR ON_ERROR_RETURN(error, VOID)
+    int i;
+    n_write_byte(writer, N_OP_CALL, error);                       CHECK_ERROR;
+    n_write_byte(writer, instr->u8s[0], error);                   CHECK_ERROR;
+    n_write_byte(writer, instr->u8s[1], error);                   CHECK_ERROR;
+    n_write_byte(writer, instr->u8s[2], error);                   CHECK_ERROR;
+    if (instr->u8s_extra != NULL) {
+        for (i = 0; i < instr->u8s[2]; i++) {
+            n_write_byte(writer, instr->u8s_extra[i], error);     CHECK_ERROR;
+        }
+    }
+#undef CHECK_ERROR
+#undef VOID
 
 }
 
@@ -247,36 +326,55 @@ call_destruct(NProtoInstruction* self) {
 
 static uint16_t
 return_size(NProtoInstruction* self) {
-    return 0;
+    return 2;
 }
 
 
 static void
 return_emit(NByteWriter* writer, NProtoInstruction* instr, NError* error) {
+#define VOID
+#define CHECK_ERROR ON_ERROR_RETURN(error, VOID)
+    n_write_byte(writer, N_OP_RETURN, error);                       CHECK_ERROR;
+    n_write_byte(writer, instr->u8s[0], error);
+#undef CHECK_ERROR
+#undef VOID
 
 }
 
 
 static uint16_t
 global_ref_size(NProtoInstruction* self) {
-    return 0;
+    return 4;
 }
 
 
 static void
 global_ref_emit(NByteWriter* writer, NProtoInstruction* instr, NError* error) {
-
+#define VOID
+#define CHECK_ERROR ON_ERROR_RETURN(error, VOID)
+    n_write_byte(writer, N_OP_GLOBAL_REF, error);                  CHECK_ERROR;
+    n_write_byte(writer, instr->u8s[0], error);                    CHECK_ERROR;
+    n_write_uint16(writer, instr->u16s[0], error);
+#undef CHECK_ERROR
+#undef VOID
 }
 
 
 static uint16_t
 global_set_size(NProtoInstruction* self) {
-    return 0;
+    return 4;
 }
 
 
 static void
 global_set_emit(NByteWriter* writer, NProtoInstruction* instr, NError* error) {
+#define VOID
+#define CHECK_ERROR ON_ERROR_RETURN(error, VOID)
+    n_write_byte(writer, N_OP_GLOBAL_SET, error);                  CHECK_ERROR;
+    n_write_uint16(writer, instr->u16s[0], error);                 CHECK_ERROR;
+    n_write_byte(writer, instr->u8s[0], error);
+#undef CHECK_ERROR
+#undef VOID
 
 }
 
