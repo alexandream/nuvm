@@ -1,3 +1,5 @@
+#include <string.h>
+
 #include "../common/compatibility/stdint.h"
 #include "../common/errors.h"
 #include "../common/opcodes.h"
@@ -133,9 +135,10 @@ n_proto_call(uint8_t dest, uint8_t target, uint8_t n_args, uint8_t* args,
                         "the argument list on call instruction.", NULL, NULL);
             return  result;
         }
+        memcpy(internal_args, args, sizeof(uint8_t) * n_args);
     }
 
-    result.vtable = &GLOBAL_REF_VTABLE;
+    result.vtable = &CALL_VTABLE;
     result.u8s[0] = dest;
     result.u8s[1] = target;
     result.u8s[2] = n_args;
@@ -159,8 +162,8 @@ NProtoInstruction
 n_proto_global_set(uint16_t dest, uint8_t source) {
     NProtoInstruction result;
     result.vtable = &GLOBAL_SET_VTABLE;
-    result.u8s[0] = dest;
-    result.u16s[0] = source;
+    result.u8s[0] = source;
+    result.u16s[0] = dest;
     return result;
 }
 
@@ -178,7 +181,7 @@ n_proto_return(uint8_t source) {
 
 static uint16_t
 nop_size(NProtoInstruction* self) {
-    return 1;
+    return n_get_opcode_size(N_OP_NOP);
 }
 
 
@@ -190,7 +193,7 @@ nop_emit(NByteWriter* writer, NProtoInstruction* instr, NError* error) {
 
 static uint16_t
 halt_size(NProtoInstruction* self) {
-    return 1;
+    return n_get_opcode_size(N_OP_HALT);
 }
 
 
@@ -202,7 +205,7 @@ halt_emit(NByteWriter* writer, NProtoInstruction* instr, NError* error) {
 
 static uint16_t
 jump_unless_size(NProtoInstruction* self) {
-    return 4;
+    return n_get_opcode_size(N_OP_JUMP_UNLESS);
 }
 
 
@@ -238,7 +241,7 @@ jump_unless_resolve_anchors(NProtoInstruction* self, uint16_t own_offset,
         return;
     }
     anchor_offset = anchor_map->vtable->get_offset(anchor_map, self->u16s[0]);
-    offset = (int16_t) (((int32_t) own_offset) - ((int32_t) anchor_offset));
+    offset = (int16_t) (((int32_t) anchor_offset) - ((int32_t) own_offset));
     self->i16s[0] = offset;
     /* Unmark the flag to indicate anchors were already resolved. */
     self->u8s[2] = 0;
@@ -247,7 +250,7 @@ jump_unless_resolve_anchors(NProtoInstruction* self, uint16_t own_offset,
 
 static uint16_t
 jump_size(NProtoInstruction* self) {
-    return 3;
+    return n_get_opcode_size(N_OP_JUMP);
 }
 
 
@@ -283,7 +286,7 @@ jump_resolve_anchors(NProtoInstruction* self, uint16_t own_offset,
         return;
     }
     anchor_offset = anchor_map->vtable->get_offset(anchor_map, self->u16s[0]);
-    offset = (int16_t) (((int32_t) own_offset) - ((int32_t) anchor_offset));
+    offset = (int16_t) (((int32_t) anchor_offset) - ((int32_t) own_offset));
     self->i16s[0] = offset;
     /* Unmark the flag to indicate anchors were already resolved. */
     self->u8s[2] = 0;
@@ -292,7 +295,7 @@ jump_resolve_anchors(NProtoInstruction* self, uint16_t own_offset,
 
 static uint16_t
 call_size(NProtoInstruction* self) {
-    return 0;
+    return n_get_opcode_size(N_OP_CALL) + self->u8s[2];
 }
 
 
@@ -326,7 +329,7 @@ call_destruct(NProtoInstruction* self) {
 
 static uint16_t
 return_size(NProtoInstruction* self) {
-    return 2;
+    return n_get_opcode_size(N_OP_RETURN);
 }
 
 
@@ -344,7 +347,7 @@ return_emit(NByteWriter* writer, NProtoInstruction* instr, NError* error) {
 
 static uint16_t
 global_ref_size(NProtoInstruction* self) {
-    return 4;
+    return n_get_opcode_size(N_OP_GLOBAL_REF);
 }
 
 
@@ -362,7 +365,7 @@ global_ref_emit(NByteWriter* writer, NProtoInstruction* instr, NError* error) {
 
 static uint16_t
 global_set_size(NProtoInstruction* self) {
-    return 4;
+    return n_get_opcode_size(N_OP_GLOBAL_SET);
 }
 
 

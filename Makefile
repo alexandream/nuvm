@@ -28,10 +28,10 @@ EVAL_TSTS=$(wildcard test/eval/*.c)
 EVAL_RUNS=$(EVAL_TSTS:test/eval/%.c=build/test/eval/%.run)
 
 ASM_TSTS=$(wildcard test/asm/*.c)
-ASM_RUNS=$(ASM_TSTS:test/eval/%.c=build/test/eval/%.run)
+ASM_RUNS=$(ASM_TSTS:test/asm/%.c=build/test/asm/%.run)
 
 TEST_CC_FLAGS=-I "src/"
-TEST_CC_LIBS=-L "dist/" -lnuvm-eval -lnuvm-common -lnuvm-asm $(ATEST_LIBS)
+TEST_CC_LIBS=-L "dist/" -lnuvm-eval -lnuvm-asm -lnuvm-common $(ATEST_LIBS)
 
 .PHONY: all
 all: build test
@@ -40,7 +40,7 @@ all: build test
 build: dist/libnuvm-common.a dist/libnuvm-eval.a dist/libnuvm-asm.a
 
 .PHONY: test
-test: $(COMMON_RUNS) $(EVAL_RUNS)
+test: $(COMMON_RUNS) $(EVAL_RUNS) $(ASM_RUNS)
 
 
 -include $(patsubst %.o, %.d, $(COMMON_OBJS) $(EVAL_OBJS) $(ASM_OBJS))
