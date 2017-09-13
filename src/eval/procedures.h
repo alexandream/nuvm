@@ -3,11 +3,13 @@
 
 #include "../common/errors.h"
 #include "values.h"
+#include "modules.h"
 
 typedef struct NProcedure NProcedure;
 
 struct NProcedure {
     NObject object_header;
+    NModule* module;
     uint32_t entry;
     uint8_t num_locals;
     uint8_t max_locals;
@@ -18,7 +20,7 @@ int
 ni_init_procedures(void);
 
 NValue
-n_create_procedure(uint32_t entry, uint8_t num_locals,
+n_create_procedure(NModule* module, uint32_t entry, uint8_t num_locals,
                    uint8_t max_locals, uint16_t size, NError *error);
 
 int

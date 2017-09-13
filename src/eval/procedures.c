@@ -46,7 +46,7 @@ ni_init_procedures(void) {
 
 
 NValue
-n_create_procedure(uint32_t entry, uint8_t num_locals,
+n_create_procedure(NModule* module, uint32_t entry, uint8_t num_locals,
                    uint8_t max_locals, uint16_t size, NError *error) {
     NProcedure* proc_ptr = NULL;
 

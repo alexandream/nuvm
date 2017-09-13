@@ -11,7 +11,7 @@ static
 NErrorType* UNEXPECTED_EOF = NULL;
 
 static NValue
-read_global(NByteReader* reader, NError* error);
+read_global(NByteReader* reader, NModule* module, NError* error);
 
 
 
@@ -54,7 +54,7 @@ n_read_module(NByteReader* reader, NError* error) {
     module = n_create_module(num_globals, code_size, error);   CHECK_ERROR;
 
     for (i = 0; i < num_globals; i++) {
-        NValue global = read_global(reader, error);            CHECK_ERROR;
+        NValue global = read_global(reader, module, error);    CHECK_ERROR;
         module->globals[i] = global;
     }
 
@@ -86,7 +86,7 @@ read_fixnum32_global(NByteReader* reader, NError* error) {
 
 
 static NValue
-read_procedure_global(NByteReader* reader, NError* error) {
+read_procedure_global(NByteReader* reader, NModule *module, NError* error) {
 #define CHECK_ERROR ON_ERROR_RETURN(error, 0);
     uint32_t entry;
     uint8_t min_locals, max_locals;
@@ -97,20 +97,21 @@ read_procedure_global(NByteReader* reader, NError* error) {
     max_locals = n_read_byte(reader, error);            CHECK_ERROR;
     size = n_read_uint16(reader, error);                CHECK_ERROR;
 
-    return n_create_procedure(entry, min_locals, max_locals, size, error);
+    return n_create_procedure(module, entry, min_locals, max_locals,
+                              size, error);
 #undef CHECK_ERROR
 }
 
 
 static NValue
-read_global(NByteReader* reader, NError* error) {
+read_global(NByteReader* reader, NModule* module, NError* error) {
 #define CHECK_ERROR ON_ERROR_RETURN(error, 0);
     uint8_t type = n_read_byte(reader, error);          CHECK_ERROR;
     switch (type) {
         case 0x00:
-            return nt_read_fixnum32_global(reader, error);
+            return read_fixnum32_global(reader, error);
         case 0x01:
-            return nt_read_procedure_global(reader, error);
+            return read_procedure_global(reader, module, error);
         default:
             n_set_error(error, INVALID_MODULE_FORMAT,
                     "Unrecognized global descriptor id.", NULL, NULL);
@@ -131,14 +132,14 @@ nt_read_fixnum32_global(NByteReader* reader, NError* error) {
 
 
 NValue
-nt_read_procedure_global(NByteReader* reader, NError* error) {
-    return read_procedure_global(reader, error);
+nt_read_procedure_global(NByteReader* reader, NModule* module, NError* error) {
+    return read_procedure_global(reader, module, error);
 }
 
 
 NValue
-nt_read_global(NByteReader* reader, NError* error) {
-    return read_global(reader, error);
+nt_read_global(NByteReader* reader, NModule* module, NError* error) {
+    return read_global(reader, module, error);
 }
 
 #endif /*N_TEST*/

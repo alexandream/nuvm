@@ -88,7 +88,7 @@ TEST(load_procedure_needs_8_bytes) {
     NByteReader* reader = n_new_byte_reader_from_data(data, 7, &ERR);
     ASSERT(IS_OK(ERR));
 
-    proc = nt_read_procedure_global(reader, &ERR);
+    proc = nt_read_procedure_global(reader, NULL, &ERR);
     ASSERT(IS_ERROR(ERR, "nuvm.UnexpectedEoF"));
 }
 
@@ -101,7 +101,7 @@ TEST(load_procedure_loads_correctly) {
     NByteReader* reader = n_new_byte_reader_from_data(data, 8, &ERR);
     ASSERT(IS_OK(ERR));
 
-    proc = nt_read_procedure_global(reader, &ERR);
+    proc = nt_read_procedure_global(reader, NULL, &ERR);
     ASSERT(IS_OK(ERR));
     ASSERT(IS_TRUE(n_is_procedure(proc)));
 
@@ -120,7 +120,7 @@ TEST(load_global_rejects_unknown_id) {
     NByteReader* reader = n_new_byte_reader_from_data(data, 1, &ERR);
     ASSERT(IS_OK(ERR));
 
-    nt_read_global(reader, &ERR);
+    nt_read_global(reader, NULL, &ERR);
     ASSERT(IS_ERROR(ERR, "nuvm.InvalidModuleFormat"));
 }
 
@@ -133,7 +133,7 @@ TEST(load_global_detects_procedure) {
     NByteReader* reader = n_new_byte_reader_from_data(data, 9, &ERR);
     ASSERT(IS_OK(ERR));
 
-    proc = nt_read_global(reader, &ERR);
+    proc = nt_read_global(reader, NULL, &ERR);
     ASSERT(IS_OK(ERR));
     ASSERT(IS_TRUE(n_is_procedure(proc)));
 
@@ -152,7 +152,7 @@ TEST(load_global_detects_fixnum32) {
     NByteReader* reader = n_new_byte_reader_from_data(data, 5, &ERR);
     ASSERT(IS_OK(ERR));
 
-    fixnum = nt_read_global(reader, &ERR);
+    fixnum = nt_read_global(reader, NULL, &ERR);
     ASSERT(IS_OK(ERR));
     ASSERT(EQ_INT(n_unwrap_fixnum(fixnum), 2147483647));
 }

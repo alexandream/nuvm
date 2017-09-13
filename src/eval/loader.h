@@ -21,10 +21,10 @@ NValue
 nt_read_fixnum32_global(NByteReader* reader, NError* error);
 
 NValue
-nt_read_procedure_global(NByteReader* reader, NError* error);
+nt_read_procedure_global(NByteReader* reader, NModule* module, NError* error);
 
 NValue
-nt_read_global(NByteReader* reader, NError* error);
+nt_read_global(NByteReader* reader, NModule* module, NError* error);
 
 #endif /* N_TEST */
 

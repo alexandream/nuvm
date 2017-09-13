@@ -49,7 +49,7 @@ CONSTRUCTOR(constructor) {
     REGISTERS = MOD->globals;
     CODE = MOD->code;
 
-    PROC = n_create_procedure(PROC_ENTRY, 2, 2, 1, &error);
+    PROC = n_create_procedure(MOD, PROC_ENTRY, 2, 2, 1, &error);
     if (!n_is_ok(&error)) {
         n_destroy_error(&error);
         ERROR("Can't create module's entry procedure.", NULL);
