@@ -54,7 +54,6 @@ n_resolve_instruction_anchors(NProtoInstruction* self, uint16_t offset,
 void
 n_destruct_proto_instruction(NProtoInstruction* self);
 
-
 NProtoInstruction
 n_proto_nop();
 

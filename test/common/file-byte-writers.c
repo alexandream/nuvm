@@ -63,7 +63,7 @@ TEST(write_byte_puts_maximum) {
 
     destroy_writer();
     read_from_file(OUTPUT, &value, 0, sizeof(uint8_t));
-    
+
     ASSERT(EQ_UINT(value, 0xFF));
 }
 
@@ -75,13 +75,13 @@ TEST(write_byte_puts_minimum) {
 
     destroy_writer();
     read_from_file(OUTPUT, &value, 0, sizeof(uint8_t));
-    
+
     ASSERT(EQ_UINT(value, 0x00));
 }
 
 
 TEST(write_byte_uses_1_byte) {
-    uint8_t value; 
+    uint8_t value;
     n_write_byte(WRITER, 0x00, &ERR);
     ASSERT(IS_OK(ERR));
 
@@ -299,7 +299,7 @@ AtTest* tests[] = {
 
 TEST_RUNNER("FileByteWriters", tests, constructor, NULL, setup, teardown)
 
-static void 
+static void
 read_from_file(const char* file_name, void* dest, size_t start, size_t size) {
     FILE* file = fopen(file_name, "rb");
     if (file == NULL) {

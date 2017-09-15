@@ -21,18 +21,25 @@ ni_init_loader(void) {
     static int INITIALIZED = 0;
     NError error = n_error_ok();
     if (!INITIALIZED) {
+        if (ni_init_errors() < 0) {
+            return -1;
+        }
+
+        if (ni_init_all_values() < 0) {
+            return -2;
+        }
         INVALID_MODULE_FORMAT =
             n_error_type("nuvm.InvalidModuleFormat", &error);
 
         if (!n_is_ok(&error)) {
             n_destroy_error(&error);
-            return -1;
+            return -3;
         }
 
         UNEXPECTED_EOF = n_error_type("nuvm.UnexpectedEoF", &error);
         if (!n_is_ok(&error)) {
             n_destroy_error(&error);
-            return -2;
+            return -4;
         }
     }
     return 0;

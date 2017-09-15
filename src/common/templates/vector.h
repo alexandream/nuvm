@@ -64,6 +64,9 @@ void SET_SIZE(VECTOR_T* self, size_t new_size, int* error)
 #define VECTOR_T_D_GET_REF(GET_REF)                                        \
 VECTOR_T_ELEMENT_T* GET_REF(VECTOR_T* self, size_t i, int* error)
 
+#define VECTOR_T_D_GET_REF_UNCHECKED(GET_REF_UNCHECKED)                    \
+VECTOR_T_ELEMENT_T* GET_REF_UNCHECKED(VECTOR_T* self, size_t i)
+
 #define VECTOR_T_D_SET(SET)                                                \
 void SET(VECTOR_T* self, size_t i, VECTOR_T_ELEMENT_T* elem, int* error)
 
@@ -90,6 +93,10 @@ VECTOR_T_D_GET_REF(GET_REF) {                                              \
     return self->pool+i;                                                   \
 }
 
+#define VECTOR_T_I_GET_REF_UNCHECKED(GET_REF_UNCHECKED)                    \
+VECTOR_T_D_GET_REF_UNCHECKED(GET_REF_UNCHECKED) {                          \
+    return self->pool+i;                                                   \
+}
 #define VECTOR_T_GROW(VECTOR, ERROR)                                       \
 do { int *_vector__1 = ERROR; VECTOR_T *_vector__2 = VECTOR;               \
     int* error = _vector__1;                                               \
