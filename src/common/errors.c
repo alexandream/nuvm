@@ -64,21 +64,21 @@ register_error_type(NErrorRegistry* self, NErrorType* type, NError* error);
 
 void
 ni_init_errors(NError* error) {
-#define ECC ON_ERROR(error, return)
+#define EC ON_ERROR(error, return)
     if (!INITIALIZED) {
-        construct_registry(&DEFAULT_REGISTRY, error);                 ECC;
+        construct_registry(&DEFAULT_REGISTRY, error);                 EC;
         {
             NErrorType* next_type = ERROR_TYPES;
             int i = 0;
             while(next_type->name != NULL) {
-                n_register_error_type(next_type, error);              ECC;
+                n_register_error_type(next_type, error);              EC;
                 next_type++;
                 i++;
             }
         }
         INITIALIZED = 1;
     }
-#undef ECC
+#undef EC
 }
 
 

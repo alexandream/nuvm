@@ -47,16 +47,16 @@ NErrorType* IO_ERROR = NULL;
 
 void
 ni_init_char_readers(NError* error) {
-#define ECC ON_ERROR(error, return)
+#define EC ON_ERROR(error, return)
     MEMORY_VTABLE.peek = memory_peek;
     MEMORY_VTABLE.advance = memory_advance;
     MEMORY_VTABLE.is_eof = memory_is_eof;
     MEMORY_VTABLE.destroy = memory_destroy;
     
-    BAD_ALLOCATION = n_error_type("nuvm.BadAllocation", error);
-    UNEXPECTED_EOF = n_error_type("nuvm.UnexpectedEoF", error);
-    IO_ERROR = n_error_type("nuvm.IoError", error);
-#undef ECC
+    BAD_ALLOCATION = n_error_type("nuvm.BadAllocation", error);        EC;
+    UNEXPECTED_EOF = n_error_type("nuvm.UnexpectedEoF", error);        EC;
+    IO_ERROR = n_error_type("nuvm.IoError", error);                    EC;
+#undef EC
 }
 
 NCharReader*

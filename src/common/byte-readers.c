@@ -61,8 +61,8 @@ memory_destroy(NByteReader*, NError*);
 
 void
 ni_init_byte_readers(NError* error) {
-#define ECC ON_ERROR(error, return)
-    UNEXPECTED_EOF = n_error_type("nuvm.UnexpectedEoF", error);         ECC;
+#define EC ON_ERROR(error, return)
+    UNEXPECTED_EOF = n_error_type("nuvm.UnexpectedEoF", error);         EC;
 
     MEMORY_VTABLE.read_byte  = memory_read_byte;
     MEMORY_VTABLE.read_u16   = memory_read_u16;

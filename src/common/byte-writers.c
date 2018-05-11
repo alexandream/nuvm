@@ -98,10 +98,10 @@ file_destroy(NByteWriter*, NError*);
 
 void
 ni_init_byte_writers(NError* error){
-#define ECC ON_ERROR(error, return)
-    BAD_ALLOCATION = n_error_type("nuvm.BadAllocation", error);   ECC;
-    OVERFLOW = n_error_type("nuvm.Overflow", error);              ECC;
-    IO_ERROR = n_error_type("nuvm.IoError", error);               ECC;
+#define EC ON_ERROR(error, return)
+    BAD_ALLOCATION = n_error_type("nuvm.BadAllocation", error);   EC;
+    OVERFLOW = n_error_type("nuvm.Overflow", error);              EC;
+    IO_ERROR = n_error_type("nuvm.IoError", error);               EC;
 
     MEMORY_VTABLE.write_byte = memory_write_byte;
     MEMORY_VTABLE.write_u16  = memory_write_u16;
@@ -118,7 +118,7 @@ ni_init_byte_writers(NError* error){
     FILE_VTABLE.write_i32  = file_write_i32;
     FILE_VTABLE.flush      = file_flush;
     FILE_VTABLE.destroy    = file_destroy;
-#undef ECC
+#undef EC
 }
 
 

@@ -340,12 +340,12 @@ fixnum_code_size(NProtoValue* self) {
 static void
 fixnum_emit_declaration(NByteWriter* writer, NProtoValue* value,
                         uint32_t code_offset, NError* error) {
-#define CHECK_ERROR ON_ERROR(error, return);
+#define EC ON_ERROR(error, return);
     NProtoFixnum32 * self = (NProtoFixnum32*) value;
 
-    n_write_byte(writer, 0x00, error);                      CHECK_ERROR;
+    n_write_byte(writer, 0x00, error);                      EC;
     n_write_int32(writer, self->value, error);
-#undef CHECK_ERROR
+#undef EC
 }
 
 
@@ -366,14 +366,14 @@ procedure_code_size(NProtoValue* generic_self) {
 static void
 procedure_emit_declaration(NByteWriter* writer, NProtoValue* value,
                            uint32_t code_offset, NError* error) {
-#define CHECK_ERROR ON_ERROR(error, return);
+#define EC ON_ERROR(error, return);
     NProtoProcedure * self = (NProtoProcedure*) value;
-    n_write_byte(writer, 0x01, error);                          CHECK_ERROR;
-    n_write_uint32(writer, code_offset, error);                 CHECK_ERROR;
-    n_write_byte(writer, self->min_locals, error);              CHECK_ERROR;
-    n_write_byte(writer, self->max_locals, error);              CHECK_ERROR;
+    n_write_byte(writer, 0x01, error);                          EC;
+    n_write_uint32(writer, code_offset, error);                 EC;
+    n_write_byte(writer, self->min_locals, error);              EC;
+    n_write_byte(writer, self->max_locals, error);              EC;
     n_write_uint16(writer, procedure_code_size(value), error);
-#undef CHECK_ERROR
+#undef EC
 
 }
 
@@ -396,20 +396,20 @@ procedure_anchor_map(NProtoProcedure* self) {
 
 static void
 procedure_emit_code(NByteWriter* writer, NProtoValue* value, NError* error) {
-#define CHECK_ERROR ON_ERROR(error, return);
+#define EC ON_ERROR(error, return);
     NProtoProcedure * self = (NProtoProcedure*) value;
     size_t i;
     for (i = 0; i < self->instructions.size; i++) {
         NProtoInstruction *instr = ivec_get_ref(&self->instructions, i);
-        n_emit_instruction(writer, instr, error);               CHECK_ERROR;
+        n_emit_instruction(writer, instr, error);               EC;
     }
-#undef CHECK_ERROR
+#undef EC
 }
 
 
 static void
 procedure_resolve_anchors(NProtoValue* generic_self, NError* error) {
-#define CHECK_ERROR ON_ERROR(error, return);
+#define EC ON_ERROR(error, return);
     NProtoProcedure* self = (NProtoProcedure*) generic_self;
     uint16_t cur_offset = 0;
     size_t i;
@@ -418,8 +418,9 @@ procedure_resolve_anchors(NProtoValue* generic_self, NError* error) {
     for (i = 0; i < self->instructions.size; i++) {
         NProtoInstruction *instr = ivec_get_ref(&self->instructions, i);
         n_resolve_instruction_anchors(instr, cur_offset, anchor_map, error);
-        CHECK_ERROR;
+        EC;
     }
+#undef EC
 }
 
 

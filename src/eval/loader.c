@@ -52,25 +52,25 @@ ni_init_loader(void) {
 
 NModule*
 n_read_module(NByteReader* reader, NError* error) {
-#define CHECK_ERROR ON_ERROR_GOTO(error, clean_up)
+#define EC ON_ERROR_GOTO(error, clean_up)
     uint16_t num_globals;
     uint32_t code_size;
     uint16_t i;
     int bytes_read;
     NModule* module = NULL;
 
-    num_globals = n_read_uint16(reader, error);                CHECK_ERROR;
-    code_size = n_read_uint32(reader, error);                  CHECK_ERROR;
+    num_globals = n_read_uint16(reader, error);                EC;
+    code_size = n_read_uint32(reader, error);                  EC;
 
-    module = n_create_module(num_globals, code_size, error);   CHECK_ERROR;
+    module = n_create_module(num_globals, code_size, error);   EC;
 
     for (i = 0; i < num_globals; i++) {
-        NValue global = read_global(reader, module, error);    CHECK_ERROR;
+        NValue global = read_global(reader, module, error);    EC;
         module->globals[i] = global;
     }
 
     bytes_read =
-        n_read_bytes(reader, module->code, code_size, error);  CHECK_ERROR;
+        n_read_bytes(reader, module->code, code_size, error);  EC;
 
     if ((uint32_t) bytes_read != code_size) {
         n_set_error(error, UNEXPECTED_EOF, "Not enough bytes in the stream "
@@ -84,7 +84,7 @@ clean_up:
         n_destroy_module(module);
     }
     return NULL;
-#undef CHECK_ERROR
+#undef EC
 }
 
 
@@ -98,26 +98,26 @@ read_fixnum32_global(NByteReader* reader, NError* error) {
 
 static NValue
 read_procedure_global(NByteReader* reader, NModule *module, NError* error) {
-#define CHECK_ERROR ON_ERROR_RETURN(error, 0);
+#define EC ON_ERROR_RETURN(error, 0);
     uint32_t entry;
     uint8_t min_locals, max_locals;
     uint16_t size;
 
-    entry = n_read_uint32(reader, error);               CHECK_ERROR;
-    min_locals = n_read_byte(reader, error);            CHECK_ERROR;
-    max_locals = n_read_byte(reader, error);            CHECK_ERROR;
-    size = n_read_uint16(reader, error);                CHECK_ERROR;
+    entry = n_read_uint32(reader, error);               EC;
+    min_locals = n_read_byte(reader, error);            EC;
+    max_locals = n_read_byte(reader, error);            EC;
+    size = n_read_uint16(reader, error);                EC;
 
     return n_create_procedure(module, entry, min_locals, max_locals,
                               size, error);
-#undef CHECK_ERROR
+#undef EC
 }
 
 
 static NValue
 read_global(NByteReader* reader, NModule* module, NError* error) {
-#define CHECK_ERROR ON_ERROR_RETURN(error, 0);
-    uint8_t type = n_read_byte(reader, error);          CHECK_ERROR;
+#define EC ON_ERROR_RETURN(error, 0);
+    uint8_t type = n_read_byte(reader, error);          EC;
     switch (type) {
         case 0x00:
             return read_fixnum32_global(reader, error);
@@ -128,7 +128,7 @@ read_global(NByteReader* reader, NModule* module, NError* error) {
                     "Unrecognized global descriptor id.");
     }
     return 0;
-#undef CHECK_ERROR
+#undef EC
 }
 
 

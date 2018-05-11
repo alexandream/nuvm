@@ -215,19 +215,17 @@ jump_unless_size(NProtoInstruction* self) {
 
 static void
 jump_unless_emit(NByteWriter* writer, NProtoInstruction* instr, NError* error) {
-#define VOID
-#define CHECK_ERROR ON_ERROR_RETURN(error, VOID)
+#define EC ON_ERROR(error, return)
     if (instr->u8s[2]) {
         /* Anchors were not resolved, somethings is very wrong. */
         n_set_error(error, ILLEGAL_ARGUMENT, "Trying to emit a Jump Unless "
                     "proto instruction without resolving anchors.");
         return;
     }
-    n_write_byte(writer, N_OP_JUMP_UNLESS, error);                 CHECK_ERROR;
-    n_write_byte(writer, instr->u8s[0], error);                    CHECK_ERROR;
+    n_write_byte(writer, N_OP_JUMP_UNLESS, error);                 EC;
+    n_write_byte(writer, instr->u8s[0], error);                    EC;
     n_write_int16(writer, instr->i16s[0], error);
-#undef CHECK_ERROR
-#undef VOID
+#undef EC
 }
 
 
@@ -258,18 +256,16 @@ jump_size(NProtoInstruction* self) {
 
 static void
 jump_emit(NByteWriter* writer, NProtoInstruction* instr, NError* error) {
-#define VOID
-#define CHECK_ERROR ON_ERROR_RETURN(error, VOID)
+#define EC ON_ERROR(error, return)
     if (instr->u8s[2]) {
         /* Anchors were not resolved, somethings is very wrong. */
         n_set_error(error, ILLEGAL_ARGUMENT, "Trying to emit a Jump proto "
                     "instruction without resolving anchors.");
         return;
     }
-    n_write_byte(writer, N_OP_JUMP, error);                       CHECK_ERROR;
+    n_write_byte(writer, N_OP_JUMP, error);                       EC;
     n_write_int16(writer, instr->i16s[0], error);
-#undef CHECK_ERROR
-#undef VOID
+#undef EC
 
 }
 
@@ -301,20 +297,18 @@ call_size(NProtoInstruction* self) {
 
 static void
 call_emit(NByteWriter* writer, NProtoInstruction* instr, NError* error) {
-#define VOID
-#define CHECK_ERROR ON_ERROR_RETURN(error, VOID)
+#define EC ON_ERROR(error, return)
     int i;
-    n_write_byte(writer, N_OP_CALL, error);                       CHECK_ERROR;
-    n_write_byte(writer, instr->u8s[0], error);                   CHECK_ERROR;
-    n_write_byte(writer, instr->u8s[1], error);                   CHECK_ERROR;
-    n_write_byte(writer, instr->u8s[2], error);                   CHECK_ERROR;
+    n_write_byte(writer, N_OP_CALL, error);                       EC;
+    n_write_byte(writer, instr->u8s[0], error);                   EC;
+    n_write_byte(writer, instr->u8s[1], error);                   EC;
+    n_write_byte(writer, instr->u8s[2], error);                   EC;
     if (instr->u8s_extra != NULL) {
         for (i = 0; i < instr->u8s[2]; i++) {
-            n_write_byte(writer, instr->u8s_extra[i], error);     CHECK_ERROR;
+            n_write_byte(writer, instr->u8s_extra[i], error);     EC;
         }
     }
-#undef CHECK_ERROR
-#undef VOID
+#undef EC
 
 }
 
@@ -335,12 +329,10 @@ return_size(NProtoInstruction* self) {
 
 static void
 return_emit(NByteWriter* writer, NProtoInstruction* instr, NError* error) {
-#define VOID
-#define CHECK_ERROR ON_ERROR_RETURN(error, VOID)
-    n_write_byte(writer, N_OP_RETURN, error);                       CHECK_ERROR;
+#define EC ON_ERROR(error, return)
+    n_write_byte(writer, N_OP_RETURN, error);                       EC;
     n_write_byte(writer, instr->u8s[0], error);
-#undef CHECK_ERROR
-#undef VOID
+#undef EC
 
 }
 
@@ -353,13 +345,11 @@ global_ref_size(NProtoInstruction* self) {
 
 static void
 global_ref_emit(NByteWriter* writer, NProtoInstruction* instr, NError* error) {
-#define VOID
-#define CHECK_ERROR ON_ERROR_RETURN(error, VOID)
-    n_write_byte(writer, N_OP_GLOBAL_REF, error);                  CHECK_ERROR;
-    n_write_byte(writer, instr->u8s[0], error);                    CHECK_ERROR;
+#define EC ON_ERROR(error, return)
+    n_write_byte(writer, N_OP_GLOBAL_REF, error);                  EC;
+    n_write_byte(writer, instr->u8s[0], error);                    EC;
     n_write_uint16(writer, instr->u16s[0], error);
-#undef CHECK_ERROR
-#undef VOID
+#undef EC
 }
 
 
@@ -371,13 +361,11 @@ global_set_size(NProtoInstruction* self) {
 
 static void
 global_set_emit(NByteWriter* writer, NProtoInstruction* instr, NError* error) {
-#define VOID
-#define CHECK_ERROR ON_ERROR_RETURN(error, VOID)
-    n_write_byte(writer, N_OP_GLOBAL_SET, error);                  CHECK_ERROR;
-    n_write_uint16(writer, instr->u16s[0], error);                 CHECK_ERROR;
+#define EC ON_ERROR(error, return)
+    n_write_byte(writer, N_OP_GLOBAL_SET, error);                  EC;
+    n_write_uint16(writer, instr->u16s[0], error);                 EC;
     n_write_byte(writer, instr->u8s[0], error);
-#undef CHECK_ERROR
-#undef VOID
+#undef EC
 
 }
 
