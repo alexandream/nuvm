@@ -48,14 +48,12 @@ NValue
 n_create_primitive(NPrimitiveFunc function, NError *error) {
     NPrimitive *primitive;
     if (function == NULL) {
-        n_set_error(error, ILLEGAL_ARGUMENT, "Can't creat a NULL primitive.",
-                    NULL, NULL);
+        n_set_error(error, ILLEGAL_ARGUMENT, "Can't creat a NULL primitive.");
     }
 
     primitive = malloc(sizeof(NPrimitive));
     if (primitive == NULL) {
-        n_set_error(error, BAD_ALLOCATION, "Unable to allocate primitive.",
-                    NULL, NULL);
+        n_set_error(error, BAD_ALLOCATION, "Unable to allocate primitive.");
     }
 
     primitive->object_header.type = &_primitive_type;

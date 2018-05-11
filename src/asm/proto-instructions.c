@@ -132,7 +132,7 @@ n_proto_call(uint8_t dest, uint8_t target, uint8_t n_args, uint8_t* args,
         internal_args = malloc(sizeof(uint8_t) * n_args);
         if (internal_args == NULL) {
             n_set_error(error, BAD_ALLOCATION, "Could not allocate space for "
-                        "the argument list on call instruction.", NULL, NULL);
+                        "the argument list on call instruction.");
             return  result;
         }
         memcpy(internal_args, args, sizeof(uint8_t) * n_args);
@@ -216,8 +216,7 @@ jump_unless_emit(NByteWriter* writer, NProtoInstruction* instr, NError* error) {
     if (instr->u8s[2]) {
         /* Anchors were not resolved, somethings is very wrong. */
         n_set_error(error, ILLEGAL_ARGUMENT, "Trying to emit a Jump Unless "
-                    "proto instruction without resolving anchors.",
-                    NULL, NULL);
+                    "proto instruction without resolving anchors.");
         return;
     }
     n_write_byte(writer, N_OP_JUMP_UNLESS, error);                 CHECK_ERROR;
@@ -236,8 +235,7 @@ jump_unless_resolve_anchors(NProtoInstruction* self, uint16_t own_offset,
 
     if (!anchor_map->vtable->has_anchor(anchor_map, self->u16s[0])) {
         n_set_error(error, ILLEGAL_ARGUMENT, "Anchor not found while trying "
-                    "to resolve Jump Unless instruction.",
-                    NULL, NULL);
+                    "to resolve Jump Unless instruction.");
         return;
     }
     anchor_offset = anchor_map->vtable->get_offset(anchor_map, self->u16s[0]);
@@ -261,8 +259,7 @@ jump_emit(NByteWriter* writer, NProtoInstruction* instr, NError* error) {
     if (instr->u8s[2]) {
         /* Anchors were not resolved, somethings is very wrong. */
         n_set_error(error, ILLEGAL_ARGUMENT, "Trying to emit a Jump proto "
-                    "instruction without resolving anchors.",
-                    NULL, NULL);
+                    "instruction without resolving anchors.");
         return;
     }
     n_write_byte(writer, N_OP_JUMP, error);                       CHECK_ERROR;
@@ -281,8 +278,7 @@ jump_resolve_anchors(NProtoInstruction* self, uint16_t own_offset,
 
     if (!anchor_map->vtable->has_anchor(anchor_map, self->u16s[0])) {
         n_set_error(error, ILLEGAL_ARGUMENT, "Anchor not found while trying "
-                    "to resolve Jump instruction.",
-                    NULL, NULL);
+                    "to resolve Jump instruction.");
         return;
     }
     anchor_offset = anchor_map->vtable->get_offset(anchor_map, self->u16s[0]);

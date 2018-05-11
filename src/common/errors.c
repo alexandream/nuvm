@@ -15,17 +15,16 @@ struct NErrorRegistry {
 
 static
 NErrorType ERROR_TYPES[] = {
-    { "nuvm.BadAllocation", NULL },
-    { "nuvm.IllegalArgument", NULL },
-    { "nuvm.UnexpectedEoF", NULL },
-    { "nuvm.error.InvalidName", NULL },
-    { "nuvm.error.RepeatedName", NULL },
-    { "nuvm.error.UnknownErrorType", NULL },
-    { "nuvm.InvalidModuleFormat", NULL },
-    { "nuvm.Overflow", NULL },
-    { "nuvm.IoError", NULL },
-
-    { NULL, NULL }
+    { "nuvm.BadAllocation" },
+    { "nuvm.IllegalArgument" },
+    { "nuvm.UnexpectedEoF" },
+    { "nuvm.error.InvalidName" },
+    { "nuvm.error.RepeatedName" },
+    { "nuvm.error.UnknownErrorType" },
+    { "nuvm.InvalidModuleFormat" },
+    { "nuvm.Overflow" },
+    { "nuvm.IoError" },
+    { NULL }
 };
 
 static
@@ -110,9 +109,6 @@ n_destroy_error(NError* self) {
         if (self->clean_up) {
             self->clean_up(self->type, self);
         }
-        else if (self->type->clean_up) {
-            self->type->clean_up(self->type, self);
-        }
     }
 }
 
@@ -181,7 +177,7 @@ construct_registry(NErrorRegistry* self, NError* error) {
     int status = ni_construct_name_registry(&self->reg, initial_size);
     if (status < 0) {
         n_set_error(error, BAD_ALLOCATION,
-                    "Can't allocate registry pool.", NULL, NULL);
+                    "Can't allocate registry pool.");
         return;
     }
 }
@@ -192,7 +188,7 @@ find_error_type(NErrorRegistry* self, const char* name, NError* error) {
     NErrorType* found = (NErrorType*) ni_find_named_object(&self->reg, name);
     if (found == NULL) {
         n_set_error(error, UNKNOWN_ERROR_TYPE, "Could not find the given "
-                    "name in the type registry.", NULL, NULL);
+                    "name in the type registry.");
     }
     return found;
 }
@@ -202,8 +198,7 @@ static void
 register_error_type(NErrorRegistry* self, NErrorType* type, NError* error) {
     int status;
     if (type == NULL) {
-        n_set_error(error, ILLEGAL_ARGUMENT, "Can't register a NULL type.",
-                    NULL, NULL);
+        n_set_error(error, ILLEGAL_ARGUMENT, "Can't register a NULL type.");
         return;
     }
 
@@ -211,15 +206,15 @@ register_error_type(NErrorRegistry* self, NErrorType* type, NError* error) {
     if (status == N_NAMED_REG_INVALID_NAME) {
         n_set_error(error, INVALID_NAME, "The name of an error type must "
                     "be non-NULL, non-empty and contain only alphanumeric "
-                    "characters and dots.", NULL, NULL);
+                    "characters and dots.");
     }
     else if (status == N_NAMED_REG_REPEATED_NAME) {
         n_set_error(error, REPEATED_NAME, "The name of an error "
-                    "type must be unique.", NULL, NULL);
+                    "type must be unique.");
     }
     else if (status == N_NAMED_REG_BAD_ALLOCATION) {
         n_set_error(error, BAD_ALLOCATION, "Could not grow the error type "
-                    "registry storage area for insertion.", NULL, NULL);
+                    "registry storage area for insertion.");
     }
 }
 

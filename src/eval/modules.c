@@ -30,8 +30,7 @@ NModule*
 n_create_module(uint16_t num_globals, uint32_t code_size, NError *error) {
     NModule *self = malloc(sizeof(NModule));
     if (self == NULL) {
-        n_set_error(error, BAD_ALLOCATION, "Unable to allocate module",
-                    NULL, NULL);
+        n_set_error(error, BAD_ALLOCATION, "Unable to allocate module");
         goto clean_up;
     }
     self->code = NULL;
@@ -39,15 +38,13 @@ n_create_module(uint16_t num_globals, uint32_t code_size, NError *error) {
 
     self->code = malloc(sizeof(unsigned char) * code_size);
     if (self->code == NULL) {
-        n_set_error(error, BAD_ALLOCATION, "Unable to allocate module",
-                    NULL, NULL);
+        n_set_error(error, BAD_ALLOCATION, "Unable to allocate module");
         goto clean_up;
     }
 
     self->globals = malloc(sizeof(NValue) * num_globals);
     if (self->globals == NULL) {
-        n_set_error(error, BAD_ALLOCATION, "Unable to allocate module",
-                    NULL, NULL);
+        n_set_error(error, BAD_ALLOCATION, "Unable to allocate module");
         goto clean_up;
     }
 

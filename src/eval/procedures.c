@@ -52,21 +52,19 @@ n_create_procedure(NModule* module, uint32_t entry, uint8_t num_locals,
 
     if (size == 0) {
         n_set_error(error, ILLEGAL_ARGUMENT, "Procedure size must be bigger "
-                    "than zero.", NULL, NULL);
+                    "than zero.");
         return 0;
     }
 
     if (max_locals < num_locals) {
         n_set_error(error, ILLEGAL_ARGUMENT, "The maximum number of locals "
-                    "must be at least equal to the internal number of locals.",
-                    NULL, NULL);
+                    "must be at least equal to the internal number of locals.");
         return 0;
     }
 
     proc_ptr = malloc(sizeof(NProcedure));
     if (proc_ptr == NULL) {
-        n_set_error(error, BAD_ALLOCATION, "Unable to allocate procedure.",
-                    NULL, NULL);
+        n_set_error(error, BAD_ALLOCATION, "Unable to allocate procedure.");
         return 0;
     }
 

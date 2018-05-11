@@ -145,8 +145,7 @@ NByteWriter*
 n_create_memory_byte_writer(void* dest, size_t size, NError* error){
     NMemoryByteWriter* self = malloc(sizeof(NMemoryByteWriter));
     if (self == NULL) {
-        n_set_error(error, BAD_ALLOCATION, "Could not allocate a byte writer.",
-                    NULL, NULL);
+        n_set_error(error, BAD_ALLOCATION, "Could not allocate a byte writer.");
     }
     construct_byte_writer((NByteWriter*) self, &MEMORY_VTABLE);
 
@@ -163,14 +162,13 @@ n_create_file_byte_writer(const char* file_name, NError* error){
     FILE *file;
     NFileByteWriter* self = malloc(sizeof(NFileByteWriter));
     if (self == NULL) {
-        n_set_error(error, BAD_ALLOCATION, "Could not allocate a byte writer.",
-                    NULL, NULL);
+        n_set_error(error, BAD_ALLOCATION, "Could not allocate a byte writer.");
     }
 
     file = fopen(file_name, "w");
     if (file == NULL) {
         free(self);
-        n_set_error(error, IO_ERROR, "Could not open file.", NULL, NULL);
+        n_set_error(error, IO_ERROR, "Could not open file.");
     }
 
 
@@ -243,7 +241,7 @@ assert_readable_size(NMemoryByteWriter *self, size_t size, NError *error) {
     size_t available = memory_trunc_size_to_available(self, size);
     if (available < size) {
         n_set_error(error, OVERFLOW, "Depleted buffer while trying to "
-                    "write on byte writer.", NULL, NULL);
+                    "write on byte writer.");
         return 0;
     }
     return 1;
@@ -333,7 +331,7 @@ memory_destroy(NByteWriter* self, NError* error) {
 static void
 write_to_file(FILE* stream, void* src, size_t size, NError* error) {
     if (fwrite(src, 1, size, stream) != size) {
-        n_set_error(error, IO_ERROR, "Could not write to file.", NULL, NULL);
+        n_set_error(error, IO_ERROR, "Could not write to file.");
     }
 }
 

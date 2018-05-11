@@ -70,7 +70,7 @@ n_read_module(NByteReader* reader, NError* error) {
 
     if ((uint32_t) bytes_read != code_size) {
         n_set_error(error, UNEXPECTED_EOF, "Not enough bytes in the stream "
-                    "to load the code for the module.", NULL, NULL);
+                    "to load the code for the module.");
         goto clean_up;
     }
 
@@ -121,7 +121,7 @@ read_global(NByteReader* reader, NModule* module, NError* error) {
             return read_procedure_global(reader, module, error);
         default:
             n_set_error(error, INVALID_MODULE_FORMAT,
-                    "Unrecognized global descriptor id.", NULL, NULL);
+                    "Unrecognized global descriptor id.");
     }
     return 0;
 #undef CHECK_ERROR

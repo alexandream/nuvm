@@ -9,7 +9,6 @@ typedef struct NError NError;
 
 struct NErrorType {
     const char* name;
-    void (*clean_up)(const NErrorType*, NError*);
 };
 
 struct NError {
@@ -39,13 +38,19 @@ ni_init_errors(void);
 #define ON_ERROR_RETURN(E, V) if (!n_is_ok(E)) return V
 #define ON_ERROR_GOTO(E, L) if (!n_is_ok(E)) goto L
 
-#define n_set_error(ERROR,TYPE,MSG, DATA, CLEAN) do { \
+
+#define n_set_error_cu(ERROR,TYPE,MSG, DATA, CLEAN) do { \
     NError* _n_e = ERROR; \
     _n_e->type = TYPE; \
     _n_e->message = MSG; \
     _n_e->data = DATA; \
     _n_e->clean_up = CLEAN; \
 } while(0)
+
+
+#define n_set_error(ERROR, TYPE, MSG) \
+    n_set_error_cu(ERROR, TYPE, MSG, NULL, NULL)
+
 
 #define n_is_ok(E) ((E)->type == NULL)
 

@@ -95,35 +95,34 @@ ni_new_char_reader_from_path(const char* path, NError* error) {
 
 	file = fopen(path, "rb");
 	if (file == NULL) {
-		n_set_error(error, IO_ERROR, "Failed to open file", NULL, NULL);
+		n_set_error(error, IO_ERROR, "Failed to open file");
 		goto cleanup;
 	}
 
 	status = fseek(file, 0, SEEK_END);
 	if (status != 0) {
 		n_set_error(error, IO_ERROR, "Failed to position file cursor to "
-                    "check file size", NULL, NULL);
+                    "check file size");
 		goto cleanup;
 	}
 
 	file_size = ftell(file);
 	if (file_size < 0) {
-		n_set_error(error, IO_ERROR, "Failed to discover file size",
-                    NULL, NULL);
+		n_set_error(error, IO_ERROR, "Failed to discover file size");
 		goto cleanup;
 	}
 
 	status = fseek(file, 0, SEEK_SET);
 	if (status != 0) {
 		n_set_error(error, IO_ERROR, "Failed to position file cursor for "
-                    "reading", NULL, NULL);
+                    "reading");
 		goto cleanup;
 	}
 
 	result = malloc(sizeof(NMemoryCharReader));
 	if (result == NULL) {
 		n_set_error(error, BAD_ALLOCATION, "Could not allocate character "
-                    "reader", NULL, NULL);
+                    "reader");
 		goto cleanup;
 	}
 
@@ -131,7 +130,7 @@ ni_new_char_reader_from_path(const char* path, NError* error) {
 		buffer = malloc(sizeof(char) * (file_size + 1));
 		if (buffer == NULL) {
             n_set_error(error, BAD_ALLOCATION, "Could not allocate character "
-                        "reader", NULL, NULL);
+                        "reader");
 			goto cleanup;
 		}
 
@@ -139,8 +138,7 @@ ni_new_char_reader_from_path(const char* path, NError* error) {
 		while (!feof(file)) {
 			size_t n = fread(buffer + i, sizeof(char), file_size - i + 1, file);
 			if (ferror(file)) {
-				n_set_error(error, IO_ERROR, "Failed to read file contents",
-                            NULL, NULL);
+				n_set_error(error, IO_ERROR, "Failed to read file contents");
 				goto cleanup;
 			}
 			i += n;
@@ -198,7 +196,7 @@ memory_peek(NCharReader* reader, NError* error) {
 
     if (is_eof) {
         n_set_error(error, UNEXPECTED_EOF, "Tried to peek from character "
-                    "reader, got EOF instead.", NULL, NULL);
+                    "reader, got EOF instead.");
         return 0;
     }
     return self->buffer[self->cursor];
@@ -212,7 +210,7 @@ memory_advance(NCharReader* reader, NError* error) {
 
     if (is_eof) {
         n_set_error(error, UNEXPECTED_EOF, "Tried to advance on character "
-                    "reader, got EOF instead.", NULL, NULL);
+                    "reader, got EOF instead.");
         return;
     }
     

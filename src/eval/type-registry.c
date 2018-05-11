@@ -164,8 +164,7 @@ construct_registry(NTypeRegistry* self, NError* error) {
     int initial_size = N_TYPE_REGISTRY_INITIAL_SIZE;
     int status = ni_construct_name_registry(&self->reg, initial_size);
     if (status < 0) {
-        n_set_error(error, BAD_ALLOCATION,
-                    "Can't allocate registry pool.", NULL, NULL);
+        n_set_error(error, BAD_ALLOCATION, "Can't allocate registry pool.");
         return;
     }
 }
@@ -176,7 +175,7 @@ find_type(NTypeRegistry* self, const char* name, NError* error) {
     NType* found = (NType*) ni_find_named_object(&self->reg, name);
     if (found == NULL) {
         n_set_error(error, UNKNOWN_TYPE, "Could not find the given "
-                    "name in the type registry.", NULL, NULL);
+                    "name in the type registry.");
     }
     return found;
 }
@@ -186,8 +185,7 @@ static void
 register_type(NTypeRegistry* self, NType* type, NError* error) {
     int status;
     if (type == NULL) {
-        n_set_error(error, ILLEGAL_ARGUMENT, "Can't register a NULL type.",
-                    NULL, NULL);
+        n_set_error(error, ILLEGAL_ARGUMENT, "Can't register a NULL type.");
         return;
     }
 
@@ -195,14 +193,13 @@ register_type(NTypeRegistry* self, NType* type, NError* error) {
     if (status == N_NAMED_REG_INVALID_NAME) {
         n_set_error(error, INVALID_NAME, "The name of a type must "
                     "be non-NULL, non-empty and contain only alphanumeric "
-                    "characters and dots.", NULL, NULL);
+                    "characters and dots.");
     }
     else if (status == N_NAMED_REG_REPEATED_NAME) {
-        n_set_error(error, REPEATED_NAME,"The name of a type must be unique.",
-                    NULL, NULL);
+        n_set_error(error, REPEATED_NAME,"The name of a type must be unique.");
     }
     else if (status == N_NAMED_REG_BAD_ALLOCATION) {
         n_set_error(error, BAD_ALLOCATION, "Could not grow the type "
-                    "registry storage area for insertion.", NULL, NULL);
+                    "registry storage area for insertion.");
     }
 }

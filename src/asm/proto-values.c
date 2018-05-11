@@ -155,7 +155,7 @@ ni_create_proto_fixnum32(int32_t value, NError* error) {
     NProtoFixnum32* self = malloc(sizeof(NProtoFixnum32));
     if (self == NULL) {
         n_set_error(error, BAD_ALLOCATION, "Could not allocate space for "
-                    "the NProtoFixnum32", NULL, NULL);
+                    "the NProtoFixnum32");
         return NULL;
     }
     construct_proto_value((NProtoValue*) self, &FIXNUM32_VTABLE);
@@ -172,7 +172,7 @@ ni_create_proto_procedure(uint8_t min_locals, uint8_t max_locals,
     int vec_error = 0;
     if (self == NULL) {
         n_set_error(error, BAD_ALLOCATION, "Could not allocate space for "
-                    "the NProtoProcedure", NULL, NULL);
+                    "the NProtoProcedure");
         return NULL;
     }
     construct_proto_value((NProtoValue*) self, &PROCEDURE_VTABLE);
@@ -180,7 +180,7 @@ ni_create_proto_procedure(uint8_t min_locals, uint8_t max_locals,
     ivec_construct(&self->instructions, 8, &vec_error);
     if (vec_error != 0) {
         n_set_error(error, BAD_ALLOCATION, "Could not allocate space for "
-                    "the NProtoProcedure", NULL, NULL);
+                    "the NProtoProcedure");
         free(self);
         return NULL;
     }
@@ -188,7 +188,7 @@ ni_create_proto_procedure(uint8_t min_locals, uint8_t max_locals,
     avec_construct(&self->anchors, 8, &vec_error);
     if (vec_error != 0) {
         n_set_error(error, BAD_ALLOCATION, "Could not allocate space for "
-                    "the NProtoProcedure", NULL, NULL);
+                    "the NProtoProcedure");
         free(self);
         return NULL;
     }
@@ -210,7 +210,7 @@ ni_create_anchor(NProtoProcedure* self, NError *error) {
 
     if (vec_error != 0) {
         n_set_error(error, BAD_ALLOCATION, "Could not allocate space to grow "
-                    "the anchors vector.", NULL, NULL);
+                    "the anchors vector.");
         return 0;
     }
 
@@ -227,15 +227,14 @@ ni_add_anchor(NProtoProcedure* self, uint16_t id, NError* error) {
 
     if (id >= self->anchors.size) {
         n_set_error(error, ILLEGAL_ARGUMENT, "Unknown anchor id while trying "
-                    "to add anchor definition.", NULL, NULL);
+                    "to add anchor definition.");
         return;
     }
 
     anchor_offset = *avec_get_ref(&self->anchors, id);
     if (anchor_offset != N_UNDEFINED_ANCHOR) {
         /* Anchor is already defined. What's wrong? */
-        n_set_error(error, ILLEGAL_ARGUMENT, "Redefinition of anchor.",
-                    NULL, NULL);
+        n_set_error(error, ILLEGAL_ARGUMENT, "Redefinition of anchor.");
         return;
     }
 
@@ -251,7 +250,7 @@ add_proto_instruction(NProtoProcedure* self, NProtoInstruction* instr,
     ivec_push(&self->instructions, instr, &vec_error);
     if (vec_error != 0) {
         n_set_error(error, BAD_ALLOCATION, "Could not allocate space to grow "
-                    "the instructions vector.", NULL, NULL);
+                    "the instructions vector.");
     }
 }
 

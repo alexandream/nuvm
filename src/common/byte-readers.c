@@ -181,7 +181,7 @@ static int assert_readable_size(NMemoryByteReader *self, int size,
     int available = memory_trunc_to_available(self, size);
     if (available < size) {
         n_set_error(error, UNEXPECTED_EOF, "Depleted buffer while trying to "
-                    "read from byte reader.", NULL, NULL);
+                    "read from byte reader.");
         return 0;
     }
     return 1;

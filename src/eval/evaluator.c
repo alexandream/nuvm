@@ -122,8 +122,7 @@ void n_evaluator_step(NEvaluator *self, NError *error) {
             break;
         default: {
             self->halted = 1;
-            n_set_error(error, &UNKNOWN_OPCODE, "Found an unknown opcode.",
-                        NULL, NULL);
+            n_set_error(error, &UNKNOWN_OPCODE, "Found an unknown opcode.");
             break;
         }
     }
@@ -148,7 +147,7 @@ n_evaluator_get_global(NEvaluator *self, int index, NError *error) {
     else {
         n_set_error(error, &INDEX_OO_BOUNDS, "The given index is larger "
                     "than the number of addressable globals "
-                    "in this evaluator.", NULL, NULL);
+                    "in this evaluator.");
         return N_UNKNOWN;
 
     }
@@ -176,8 +175,7 @@ n_prepare_evaluator(NEvaluator *self, NModule *module, NError *error) {
 
     if (!n_is_procedure(entry_val)) {
         n_set_error(error, ILLEGAL_ARGUMENT, "Value on the entry point of "
-                    "a module must be a procedure.",
-                    NULL, NULL);
+                    "a module must be a procedure.");
         return;
     }
 
@@ -273,8 +271,7 @@ op_call(NEvaluator *self, unsigned char *stream, NError *error) {
     }
     else {
         n_set_error(error, ILLEGAL_ARGUMENT, "Target to call instruction "
-                    "must be a callable object.",
-                    NULL, NULL);
+                    "must be a callable object.");
         return self->pc;
     }
 
@@ -296,8 +293,7 @@ op_jump_unless(NEvaluator *self, unsigned char *stream, NError *error) {
     }
     else {
         n_set_error(error, ILLEGAL_ARGUMENT, "Condition to "
-                    "jump-unless must be a valid Boolean value.",
-                    NULL, NULL);
+                    "jump-unless must be a valid Boolean value.");
         return 0;
     }
 }
