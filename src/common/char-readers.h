@@ -8,8 +8,8 @@
 
 typedef struct NCharReader NCharReader;
 
-int
-ni_init_char_readers(void);
+void
+ni_init_char_readers(NError* error);
 
 NCharReader*
 ni_new_char_reader_from_path(const char* path, NError* error);

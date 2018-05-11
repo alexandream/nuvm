@@ -9,8 +9,8 @@
 typedef struct NByteWriter NByteWriter;
 
 
-int
-ni_init_byte_writers(void);
+void
+ni_init_byte_writers(NError* error);
 
 NByteWriter*
 n_create_memory_byte_writer(void* dest, size_t size, NError* error);

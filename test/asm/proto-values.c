@@ -1,5 +1,6 @@
 #include "../test.h"
 
+#include "common/common.h"
 #include "common/errors.h"
 #include "common/byte-readers.h"
 #include "common/byte-writers.h"
@@ -20,12 +21,9 @@ CONSTRUCTOR(constructor) {
     if (ni_init_proto_values() < 0) {
         ERROR("Could not initialize the proto instructions module.", NULL);
     }
-    if (ni_init_byte_readers() < 0) {
-        ERROR("Could not initialize the byte readers module.", NULL);
-    }
-    if (ni_init_byte_writers() < 0) {
-        ERROR("Could not initialize the byte writers module.", NULL);
-    }
+
+    NT_INITIALIZE_MODULE(n_init_common);
+
     if (ni_init_loader() < 0) {
         ERROR("Could not initialize the loader module.", NULL);
     }

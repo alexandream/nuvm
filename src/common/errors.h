@@ -34,8 +34,8 @@ n_error_type(const char* name, NError* error);
 const char*
 n_error_name(NError* error);
 
-int
-ni_init_errors(void);
+void
+ni_init_errors(NError* error);
 
 #define ON_ERROR(E, C) if (!n_is_ok(E)) C
 #define ON_ERROR_RETURN(E, V) if (!n_is_ok(E)) return V

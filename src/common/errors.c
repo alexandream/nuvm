@@ -62,31 +62,23 @@ static void
 register_error_type(NErrorRegistry* self, NErrorType* type, NError* error);
 
 
-int
-ni_init_errors(void) {
+void
+ni_init_errors(NError* error) {
+#define ECC ON_ERROR(error, return)
     if (!INITIALIZED) {
-        NError error = n_error_ok();
-
-        construct_registry(&DEFAULT_REGISTRY, &error);
-        if (!n_is_ok(&error)) {
-            return -2;
-        }
-
+        construct_registry(&DEFAULT_REGISTRY, error);                 ECC;
         {
             NErrorType* next_type = ERROR_TYPES;
             int i = 0;
             while(next_type->name != NULL) {
-                n_register_error_type(next_type, &error);
-                if (!n_is_ok(&error)) {
-                    return -3 - i;
-                }
+                n_register_error_type(next_type, error);              ECC;
                 next_type++;
                 i++;
             }
         }
         INITIALIZED = 1;
     }
-    return 0;
+#undef ECC
 }
 
 

@@ -6,9 +6,11 @@
 
 void
 n_init_common(NError* error) {
-    ni_init_errors();
-    ni_init_byte_readers();
-    ni_init_byte_writers();
-    ni_init_char_readers();
+#define ECC ON_ERROR(error, return)
+    ni_init_errors(error);                                          ECC;
+    ni_init_byte_readers(error);                                    ECC;
+    ni_init_byte_writers(error);                                    ECC;
+    ni_init_char_readers(error);                                    ECC;
+#undef ECC
 }
 

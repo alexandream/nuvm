@@ -22,8 +22,8 @@ struct NByteReaderVTable {
     void (*destroy)(NByteReader*, NError*);
 };
 
-int
-ni_init_byte_readers(void);
+void
+ni_init_byte_readers(NError* error);
 
 NByteReader*
 n_new_byte_reader_from_data(void* data, int size, NError* error);
