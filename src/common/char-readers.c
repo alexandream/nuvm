@@ -49,10 +49,6 @@ int
 ni_init_char_readers(void) {
     NError error = n_error_ok();
 
-    if (ni_init_errors() < 0) {
-        return -1;
-    }
-
     MEMORY_VTABLE.peek = memory_peek;
     MEMORY_VTABLE.advance = memory_advance;
     MEMORY_VTABLE.is_eof = memory_is_eof;

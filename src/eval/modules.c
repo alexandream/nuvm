@@ -1,3 +1,4 @@
+#include "../common/common.h"
 
 #include "modules.h"
 
@@ -10,9 +11,12 @@ ni_init_modules(void) {
     if (!INITIALIZED) {
         NError error = n_error_ok();
 
-        if (ni_init_errors() < 0) {
+        n_init_common(&error);
+        if (!n_is_ok(&error)) {
+            n_destroy_error(&error);
             return -1;
         }
+
 
         BAD_ALLOCATION = n_error_type("nuvm.BadAllocation", &error);
         if (!n_is_ok(&error)) {

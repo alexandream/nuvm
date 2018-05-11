@@ -5,15 +5,16 @@
 #include "evaluator.h"
 
 
+#include "../common/common.h"
 #include "../common/opcodes.h"
 #include "../common/instruction-decoders.h"
 
 
 static
-NErrorType INDEX_OO_BOUNDS =  { "nuvm.IndexOutOfBounds", NULL };
+NErrorType INDEX_OO_BOUNDS =  { "nuvm.IndexOutOfBounds" };
 
 static
-NErrorType UNKNOWN_OPCODE  =  { "nuvm.UnknownOpcode", NULL };
+NErrorType UNKNOWN_OPCODE  =  { "nuvm.UnknownOpcode" };
 
 static
 NErrorType *ILLEGAL_ARGUMENT = NULL;
@@ -48,9 +49,12 @@ ni_init_evaluator(void) {
     if (!INITIALIZED) {
         NError error = n_error_ok();
 
-        if (ni_init_errors() < 0) {
+        n_init_common(&error);
+        if (!n_is_ok(&error)) {
+            n_destroy_error(&error);
             return -1;
         }
+
         if (ni_init_all_values() < 0) {
             return -2;
         }

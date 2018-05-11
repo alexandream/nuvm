@@ -31,9 +31,6 @@ int
 ni_register_named_object(NNameRegistry* self, const char* name,
                          const void* obj);
 
-int
-ni_init_name_registry(void);
-
 const void*
 ni_find_named_object(NNameRegistry*, const char* name);
 

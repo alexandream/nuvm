@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include "../test.h"
 
+#include "common/common.h"
 #include "common/errors.h"
 
 #include "common/byte-readers.h"
@@ -12,9 +13,7 @@
 NError ERR;
 
 CONSTRUCTOR(constructor) {
-    if (ni_init_byte_readers() < 0) {
-        ERROR("Can't initialize byte-readers module.", NULL);
-    }
+    NT_INITIALIZE_MODULE(n_init_common);
 
     if (ni_init_all_values() < 0) {
         ERROR("Can't initialize values module.", NULL);

@@ -1,3 +1,4 @@
+#include "../common/common.h"
 #include "../common/errors.h"
 #include "../common/byte-writers.h"
 #include "../common/compatibility/stdint.h"
@@ -93,7 +94,10 @@ construct_proto_value(NProtoValue* self, NProtoValueVTable* vtable);
 int
 ni_init_proto_values(void) {
     NError error = n_error_ok();
-    if (ni_init_errors() < 0) {
+
+    n_init_common(&error);
+    if (!n_is_ok(&error)) {
+        n_destroy_error(&error);
         return -1;
     }
 

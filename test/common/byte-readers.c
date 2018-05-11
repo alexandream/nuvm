@@ -3,6 +3,7 @@
 
 #include "../test.h"
 
+#include "common/common.h"
 #include "common/byte-readers.h"
 
 static
@@ -16,10 +17,7 @@ NError ERR;
 
 
 CONSTRUCTOR(constructor) {
-    if (ni_init_byte_readers() < 0) {
-        ERROR("Cant initialize byte readers module.", NULL);
-    }
-
+    NT_INITIALIZE_MODULE(n_init_common);
     {
         /* Initialize TEST_DATA with the array:
          * [ 0x01, 0x02, 0x03, ..., 0xFE, 0xFF, 0x00 ] */
@@ -208,3 +206,4 @@ AtTest* tests[] = {
 
 
 TEST_RUNNER("ByteReaders", tests, constructor, NULL, setup, teardown)
+

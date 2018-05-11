@@ -4,6 +4,7 @@
 
 #include "../test.h"
 
+#include "common/common.h"
 #include "common/byte-writers.h"
 
 static
@@ -25,9 +26,7 @@ static void
 destroy_writer(void);
 
 CONSTRUCTOR(constructor) {
-    if (ni_init_byte_writers() < 0) {
-        ERROR("Cant initialize byte writers module.", NULL);
-    }
+	NT_INITIALIZE_MODULE(n_init_common);
 }
 
 

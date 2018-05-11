@@ -2,9 +2,12 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "type-registry.h"
+
+#include "../common/common.h"
 #include "../common/errors.h"
 #include "../common/name-registry.h"
+
+#include "type-registry.h"
 
 #ifndef N_TYPE_REGISTRY_INITIAL_SIZE
 #define N_TYPE_REGISTRY_INITIAL_SIZE 32
@@ -20,10 +23,10 @@ NTypeRegistry DEFAULT_REGISTRY;
 
 
 static NErrorType ERROR_TYPES[] = {
-    { "nuvm.types.InvalidName", NULL },
-    { "nuvm.types.RepeatedName", NULL },
-    { "nuvm.types.UnknownType", NULL },
-    { NULL, NULL }
+    { "nuvm.types.InvalidName" },
+    { "nuvm.types.RepeatedName" },
+    { "nuvm.types.UnknownType" },
+    { NULL }
 };
 
 static
@@ -56,11 +59,10 @@ int ni_init_type_registry() {
     if (!INITIALIZED) {
         NError error = n_error_ok();
 
-        if (ni_init_errors() < 0) {
+        n_init_common(&error);
+        if (!n_is_ok(&error)) {
+            n_destroy_error(&error);
             return -1;
-        }
-        if (ni_init_name_registry() < 0) {
-            return -2;
         }
 
         construct_registry(&DEFAULT_REGISTRY, &error);

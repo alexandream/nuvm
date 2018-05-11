@@ -2,14 +2,13 @@
 
 #include "../test.h"
 
+#include "common/common.h"
 #include "common/name-registry.h"
 
 NNameRegistry NR;
 
 CONSTRUCTOR(constructor) {
-    if (ni_init_name_registry() < 0) {
-        ERROR("Cant initialize name registry system.", NULL);
-    }
+    NT_INITIALIZE_MODULE(n_init_common);
 }
 
 

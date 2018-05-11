@@ -1,6 +1,7 @@
 #include <string.h>
 
 #include "../common/compatibility/stdint.h"
+#include "../common/common.h"
 #include "../common/errors.h"
 #include "../common/opcodes.h"
 #include "../common/byte-writers.h"
@@ -32,7 +33,10 @@ ni_init_proto_instructions(void) {
     if (!INITIALIZED) {
         NError error = n_error_ok();
         INITIALIZED = 1;
-        if (ni_init_errors() < 0) {
+
+        n_init_common(&error);
+        if (!n_is_ok(&error)) {
+            n_destroy_error(&error);
             return -1;
         }
 

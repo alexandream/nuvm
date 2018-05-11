@@ -4,6 +4,7 @@
 
 #include "../test.h"
 
+#include "common/common.h"
 #include "common/char-readers.h"
 
 #define LONG_READER_ITERATIONS 50
@@ -23,8 +24,11 @@ CONSTRUCTOR(constructor) {
 	FILE* file;
 	int i;
 
-    if (ni_init_char_readers() < 0) {
-        ERROR("Could not initialize char readers module for tests.", NULL);
+    n_init_common(&ERR);
+    if (!n_is_ok(&ERR)) {
+        NtTestMessage msg = NT_MAKE_MODULE_INIT_ERROR_MSG(&ERR);
+        n_destroy_error(&ERR);
+        ERROR(msg.contents, msg.clean_up);
     }
 
 	file = fopen("build/empty-file", "w");

@@ -67,10 +67,6 @@ ni_init_errors(void) {
     if (!INITIALIZED) {
         NError error = n_error_ok();
 
-        if (ni_init_name_registry() < 0) {
-            return -1;
-        }
-
         construct_registry(&DEFAULT_REGISTRY, &error);
         if (!n_is_ok(&error)) {
             return -2;
@@ -102,6 +98,11 @@ n_error_ok() {
     return result;
 }
 
+
+const char*
+n_error_name(NError* error) {
+    return error->type != NULL ? error->type->name : "nuvm.Ok";
+}
 
 void
 n_destroy_error(NError* self) {

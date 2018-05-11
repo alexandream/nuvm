@@ -63,10 +63,6 @@ int
 ni_init_byte_readers(void) {
     NError error = n_error_ok();
 
-    if (ni_init_errors() < 0) {
-        return -1;
-    }
-
     UNEXPECTED_EOF = n_error_type("nuvm.UnexpectedEoF", &error);
     if (!n_is_ok(&error)) {
         n_destroy_error(&error);

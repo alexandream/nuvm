@@ -100,10 +100,6 @@ int
 ni_init_byte_writers(void){
     NError error = n_error_ok();
 
-    if (ni_init_errors() < 0) {
-        return -1;
-    }
-
     BAD_ALLOCATION = n_error_type("nuvm.BadAllocation", &error);
     if (!n_is_ok(&error)) {
         n_destroy_error(&error);

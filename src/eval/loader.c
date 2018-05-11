@@ -1,3 +1,4 @@
+#include "../common/common.h"
 #include "../common/errors.h"
 #include "../common/byte-readers.h"
 
@@ -21,9 +22,12 @@ ni_init_loader(void) {
     static int INITIALIZED = 0;
     NError error = n_error_ok();
     if (!INITIALIZED) {
-        if (ni_init_errors() < 0) {
+        n_init_common(&error);
+        if (!n_is_ok(&error)) {
+            n_destroy_error(&error);
             return -1;
         }
+
 
         if (ni_init_all_values() < 0) {
             return -2;

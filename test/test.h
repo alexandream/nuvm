@@ -62,4 +62,25 @@ int main(int argc, char** argv) {                       \
     return 0;                                           \
 }
 
+
+
+typedef struct {
+    const char* contents;
+    void (*clean_up)(const char*);
+} NtTestMessage;
+
+NtTestMessage
+NT_MAKE_MODULE_INIT_ERROR_MSG(NError* error);
+
+#define NT_INITIALIZE_MODULE(MOD_INIT_FUNC) do {                   \
+    NError ERR = n_error_ok();                                     \
+    MOD_INIT_FUNC(&ERR);                                           \
+    if (!n_is_ok(&ERR)) {                                          \
+        NtTestMessage msg = NT_MAKE_MODULE_INIT_ERROR_MSG(&ERR);   \
+        n_destroy_error(&ERR);                                     \
+        ERROR(msg.contents, msg.clean_up);                         \
+    }                                                              \
+} while(0)
+    
+
 #endif /* N_TEST_H */

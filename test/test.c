@@ -59,3 +59,21 @@ is_error_type(const char* expr, NError* err, NErrorType* type) {
     }
     return at_make_success();
 }
+
+
+NtTestMessage
+NT_MAKE_MODULE_INIT_ERROR_MSG(NError* error) {
+    NtTestMessage result = {
+        "Allocation error while building error message",
+        NULL
+    };
+
+    const char* msg =
+        at_allocf("Error while initializing module under test: %s - %s",
+                  n_error_name(error), n_error_message(error));
+    if (msg) {
+        result.contents = msg;
+        result.clean_up = at_freef;
+    }
+    return result;
+}

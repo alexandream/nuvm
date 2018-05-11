@@ -2,14 +2,13 @@
 
 #include "../test.h"
 
+#include "common/common.h"
 #include "common/errors.h"
 
 NErrorRegistry* ER = NULL;
 
 CONSTRUCTOR(constructor) {
-    if (ni_init_errors() < 0) {
-        ERROR("Can't initialize error system.", NULL);
-    }
+	NT_INITIALIZE_MODULE(n_init_common);
 }
 
 

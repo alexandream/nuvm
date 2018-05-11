@@ -82,12 +82,6 @@ ni_register_named_object(NNameRegistry* self, const char* name,
 }
 
 
-int
-ni_init_name_registry(void) {
-    return 0;
-}
-
-
 const void*
 ni_find_named_object(NNameRegistry* self, const char* name) {
     int i;
