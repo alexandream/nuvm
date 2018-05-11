@@ -110,7 +110,7 @@ ni_init_byte_writers(void){
         return -2;
     }
 
-    BAD_ALLOCATION = n_error_type("nuvm.Overflow", &error);
+    OVERFLOW = n_error_type("nuvm.Overflow", &error);
     if (!n_is_ok(&error)) {
         n_destroy_error(&error);
         return -3;
