@@ -1,10 +1,11 @@
 #include "../test.h"
 
-#include "common/common.h"
 #include "common/errors.h"
 #include "common/opcodes.h"
 #include "common/byte-writers.h"
 #include "common/byte-readers.h"
+
+#include "asm/asm.h"
 #include "asm/proto-instructions.h"
 
 typedef struct NDummyAnchorMap NDummyAnchorMap;
@@ -34,10 +35,7 @@ create_anchor_map(int key, uint16_t value);
 
 
 CONSTRUCTOR(constructor) {
-    if (ni_init_proto_instructions() < 0) {
-        ERROR("Could not initialize the proto instructions module.", NULL);
-    }
-    NT_INITIALIZE_MODULE(n_init_common);
+    NT_INITIALIZE_MODULE(n_init_asm);
 
     dummy_vtable.has_anchor = has_anchor;
     dummy_vtable.get_offset = get_offset;

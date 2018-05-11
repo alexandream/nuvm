@@ -2,6 +2,7 @@
 #define N_A_PROTO_INSTRUCTIONS_H
 
 #include "../common/compatibility/stdint.h"
+#include "../common/errors.h"
 #include "../common/byte-writers.h"
 
 typedef struct NAnchorMap NAnchorMap;
@@ -37,8 +38,8 @@ struct NProtoInstruction {
 };
 
 
-int
-ni_init_proto_instructions(void);
+void
+ni_init_proto_instructions(NError* error);
 
 uint16_t
 n_proto_instruction_size(NProtoInstruction* self);

@@ -11,8 +11,8 @@ typedef struct NProtoProcedure NProtoProcedure;
 
 #define N_UNDEFINED_ANCHOR 0xFFFF
 
-int
-ni_init_proto_values(void);
+void
+ni_init_proto_values(NError* error);
 
 NProtoFixnum32 *
 ni_create_proto_fixnum32(int32_t value, NError *error);

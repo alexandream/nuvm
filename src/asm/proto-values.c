@@ -91,34 +91,16 @@ static void
 construct_proto_value(NProtoValue* self, NProtoValueVTable* vtable);
 
 
-int
-ni_init_proto_values(void) {
-    NError error = n_error_ok();
+void
+ni_init_proto_values(NError* error) {
+#define EC ON_ERROR(error, return);
+    BAD_ALLOCATION = n_error_type("nuvm.BadAllocation", error);         EC;
+    ILLEGAL_ARGUMENT = n_error_type("nuvm.IllegalArgument", error);     EC;
 
-    n_init_common(&error);
-    if (!n_is_ok(&error)) {
-        n_destroy_error(&error);
-        return -1;
-    }
+    ni_init_proto_instructions(error);                                  EC;
 
-    BAD_ALLOCATION = n_error_type("nuvm.BadAllocation", &error);
-    if (!n_is_ok(&error)) {
-        n_destroy_error(&error);
-        return -2;
-    }
-
-    ILLEGAL_ARGUMENT = n_error_type("nuvm.IllegalArgument", &error);
-    if (!n_is_ok(&error)) {
-        n_destroy_error(&error);
-        return -3;
-    }
-
-    if (ni_init_proto_instructions() < 0) {
-        return -4;
-    }
     init_vtables();
-
-    return 0;
+#undef EC
 }
 
 uint16_t

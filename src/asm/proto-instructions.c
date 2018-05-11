@@ -27,34 +27,19 @@ NErrorType* BAD_ALLOCATION = NULL;
 static
 NErrorType* ILLEGAL_ARGUMENT = NULL;
 
-int
-ni_init_proto_instructions(void) {
+void
+ni_init_proto_instructions(NError* error) {
+#define EC ON_ERROR(error, return)
     static int INITIALIZED = 0;
     if (!INITIALIZED) {
-        NError error = n_error_ok();
         INITIALIZED = 1;
 
-        n_init_common(&error);
-        if (!n_is_ok(&error)) {
-            n_destroy_error(&error);
-            return -1;
-        }
-
-        BAD_ALLOCATION = n_error_type("nuvm.BadAllocation", &error);
-        if (!n_is_ok(&error)) {
-            n_destroy_error(&error);
-            return -2;
-        }
-
-        ILLEGAL_ARGUMENT = n_error_type("nuvm.IllegalArgument", &error);
-        if (!n_is_ok(&error)) {
-            n_destroy_error(&error);
-            return -3;
-        }
+        BAD_ALLOCATION = n_error_type("nuvm.BadAllocation", error);       EC;
+        ILLEGAL_ARGUMENT = n_error_type("nuvm.IllegalArgument", error);   EC;
 
         init_vtables();
     }
-    return 0;
+#undef EC
 }
 
 
