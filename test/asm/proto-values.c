@@ -10,6 +10,7 @@
 
 static uint8_t BUFFER[256];
 static NByteWriter* WRITER = NULL;
+static NByteReader* READER = NULL;
 static NError ERR;
 
 CONSTRUCTOR(constructor) {
@@ -23,6 +24,14 @@ SETUP(setup) {
     if (!n_is_ok(&ERR)) {
         n_destroy_error(&ERR);
         ERROR("Could not create memory byte writer for test.", NULL);
+    }
+
+    READER = n_new_byte_reader_from_data(BUFFER, 256, &ERR);
+    if (!n_is_ok(&ERR)) {
+        n_destroy_error(&ERR);
+        ERR = n_error_ok();
+        n_destroy_byte_writer(WRITER, &ERR);
+        ERROR("Could not create memory byte reader for test.", NULL);
     }
 }
 
@@ -53,16 +62,14 @@ TEST(fixnum_emits_fixnum32_decl) {
     ASSERT(IS_TRUE(proto_fixnum != NULL));
 
     ni_emit_proto_value_declaration(WRITER, proto_value, 0, &ERR);
-    
-    ERROR("Test not fully implemented.", NULL);
-    /* FIXME: This test should assert the result without eval. */
-    /*
-    NValue fixnum;
-    fixnum = nt_read_global(READER, NULL, &ERR);
     ASSERT(IS_OK(ERR));
-    ASSERT(IS_TRUE(n_is_fixnum(fixnum)));
-    ASSERT(EQ_INT(n_unwrap_fixnum(fixnum), -1234567));
-    */
+
+    /*0x00, int32*/
+    ASSERT(EQ_UINT(n_read_byte(READER, &ERR), 0x00));
+    ASSERT(IS_OK(ERR));
+
+    ASSERT(EQ_INT(n_read_int32(READER, &ERR), -1234567));
+    ASSERT(IS_OK(ERR));
 }
 
 
@@ -108,6 +115,7 @@ TEST(proc_code_size_adds_instructions) {
 TEST(proc_emits_procedure_declaration) {
     NProtoProcedure* proto_proc = ni_create_proto_procedure(1, 5, &ERR);
     NProtoValue *proto_value = (NProtoValue*) proto_proc;
+    uint16_t code_size;
 
     /* Procedures must have at least one instruction. */
     ni_add_proto_nop(proto_proc, &ERR);
@@ -116,26 +124,29 @@ TEST(proc_emits_procedure_declaration) {
     ni_emit_proto_value_declaration(WRITER, proto_value, 123, &ERR);
     ASSERT(IS_OK(ERR));
 
-    ERROR("Test not fully implemented.", NULL);
-    /*
-    NValue proc;
-    NProcedure* proc_ptr;
-    proc = nt_read_global(READER, NULL, &ERR);
+    ASSERT(EQ_UINT(n_read_byte(READER, &ERR), 0x01));
     ASSERT(IS_OK(ERR));
-    ASSERT(IS_TRUE(n_is_procedure(proc)));
 
-    proc_ptr = (NProcedure*) n_unwrap_object(proc);
-    ASSERT(EQ_UINT(proc_ptr->entry, 123));
-    ASSERT(EQ_UINT(proc_ptr->num_locals, 1));
-    ASSERT(EQ_UINT(proc_ptr->max_locals, 5));
-    ASSERT(EQ_UINT(proc_ptr->size, ni_proto_value_code_size(proto_value)));
-    */
+    ASSERT(EQ_UINT(n_read_uint32(READER, &ERR), 123));
+    ASSERT(IS_OK(ERR));
+
+    ASSERT(EQ_UINT(n_read_byte(READER, &ERR), 1));
+    ASSERT(IS_OK(ERR));
+
+    ASSERT(EQ_UINT(n_read_byte(READER, &ERR), 5));
+    ASSERT(IS_OK(ERR));
+
+    code_size = ni_proto_value_code_size(proto_value);
+    ASSERT(EQ_UINT(n_read_uint16(READER, &ERR), code_size));
+    ASSERT(IS_OK(ERR));
 }
 
 
 TEST(proc_emits_instructions_as_code) {
     NProtoProcedure* proto_proc = ni_create_proto_procedure(1, 5, &ERR);
     NProtoValue* proto_value = (NProtoValue*) proto_proc;
+    uint8_t opcode, dest;
+    uint16_t source;
 
     ni_add_proto_nop(proto_proc, &ERR);
     ASSERT(IS_OK(ERR));
@@ -146,11 +157,6 @@ TEST(proc_emits_instructions_as_code) {
     ni_emit_proto_value_code(WRITER, proto_value, &ERR);
     ASSERT(IS_OK(ERR));
 
-    ERROR("Test not fully implemented.", NULL);
-
-    /*
-    uint8_t opcode, dest;
-    uint16_t source;
     opcode = n_read_byte(READER, &ERR);
     ASSERT(IS_OK(ERR));
     ASSERT(EQ_UINT(opcode, N_OP_NOP));
@@ -166,7 +172,6 @@ TEST(proc_emits_instructions_as_code) {
     source = n_read_uint16(READER, &ERR);
     ASSERT(IS_OK(ERR));
     ASSERT(EQ_UINT(source, 32145));
-    */
 }
 
 
