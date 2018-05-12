@@ -11,37 +11,20 @@ NErrorType* ILLEGAL_ARGUMENT = NULL;
 static
 NErrorType* BAD_ALLOCATION = NULL;
 
-int
-ni_init_primitives(void) {
+void
+ni_init_primitives(NError* error) {
+#define EC ON_ERROR(error, return)
     static int INITIALIZED = 0;
     if (!INITIALIZED) {
-        NError error = n_error_ok();
-
-        if (ni_init_type_registry() < 0) {
-            return -1;
-        }
-
         n_construct_type(&_primitive_type, "nuvm.PrimitiveProcedure");
-        n_register_type(&_primitive_type, &error);
-        if (!n_is_ok(&error)) {
-            n_destroy_error(&error);
-            return -2;
-        }
+        n_register_type(&_primitive_type, error);                        EC;
 
-        ILLEGAL_ARGUMENT = n_error_type("nuvm.IllegalArgument", &error);
-        if (!n_is_ok(&error)) {
-            n_destroy_error(&error);
-            return -3;
-        }
+        ILLEGAL_ARGUMENT = n_error_type("nuvm.IllegalArgument", error);  EC;
+        BAD_ALLOCATION = n_error_type("nuvm.BadAllocation", error);      EC;
 
-        BAD_ALLOCATION = n_error_type("nuvm.BadAllocation", &error);
-        if (!n_is_ok(&error)) {
-            n_destroy_error(&error);
-            return -4;
-        }
         INITIALIZED = 1;
     }
-    return 0;
+#undef EC
 }
 
 NValue

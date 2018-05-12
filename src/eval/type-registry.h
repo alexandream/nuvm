@@ -7,8 +7,8 @@
 typedef struct NTypeRegistry NTypeRegistry;
 
 
-int
-ni_init_type_registry();
+void
+ni_init_type_registry(NError* error);
 
 void
 n_construct_type(NType* type, const char* name);

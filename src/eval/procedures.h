@@ -16,8 +16,8 @@ struct NProcedure {
     uint16_t size;
 };
 
-int
-ni_init_procedures(void);
+void
+ni_init_procedures(NError* error);
 
 NValue
 n_create_procedure(NModule* module, uint32_t entry, uint8_t num_locals,

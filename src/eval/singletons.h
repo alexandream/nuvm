@@ -7,8 +7,8 @@ extern NValue N_TRUE;
 extern NValue N_FALSE;
 extern NValue N_UNKNOWN;
 
-int
-ni_init_singletons();
+void
+ni_init_singletons(NError* error);
 
 int
 n_is_unknown(NValue value);

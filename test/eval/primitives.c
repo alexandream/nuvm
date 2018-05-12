@@ -3,6 +3,8 @@
 #include "../test.h"
 
 #include "common/errors.h"
+
+#include "eval/eval.h"
 #include "eval/type-registry.h"
 #include "eval/singletons.h"
 #include "eval/primitives.h"
@@ -26,9 +28,7 @@ copy_func(int n_args, NValue *args, NError *error);
 
 
 CONSTRUCTOR(constructor) {
-    if (ni_init_all_values() < 0) {
-        ERROR("Can't initialize values modules.", NULL);
-    }
+    NT_INITIALIZE_MODULE(n_init_eval);
 
     OTHER_VALUES[0] = N_TRUE;
     OTHER_VALUES[1] = N_FALSE;

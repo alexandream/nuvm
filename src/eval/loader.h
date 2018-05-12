@@ -6,8 +6,8 @@
 #include "../common/byte-readers.h"
 #include "modules.h"
 
-int
-ni_init_loader(void);
+void
+ni_init_loader(NError* error);
 
 NModule*
 n_read_module(NByteReader* reader, NError* error);

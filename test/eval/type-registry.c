@@ -3,15 +3,16 @@
 #include "../test.h"
 
 #include "common/errors.h"
+
+#include "eval/eval.h"
 #include "eval/type-registry.h"
 
 NTypeRegistry* TR = NULL;
 
+NError ERR;
 CONSTRUCTOR(constructor) {
-    int status = ni_init_type_registry();
-    if (status < 0) {
-        ERROR("Cant initialize types system.", NULL);
-    }
+    ERR = n_error_ok();
+    NT_INITIALIZE_MODULE(n_init_eval);
 }
 
 

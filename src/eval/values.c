@@ -8,22 +8,16 @@
 static NType  _fixnum_type;
 
 
-int
-ni_init_values() {
+void
+ni_init_values(NError* error) {
+#define EC ON_ERROR(error, return)
     static int INITIALIZED = 0;
     if (!INITIALIZED) {
-
-        NError error = n_error_ok();
-
         n_construct_type(&_fixnum_type, "nuvm.Fixnum");
-        n_register_type(&_fixnum_type, &error);
-        if (!n_is_ok(&error)) {
-            n_destroy_error(&error);
-            return -5;
-        }
+        n_register_type(&_fixnum_type, error);                       EC;
         INITIALIZED = 1;
     }
-    return 0;
+#undef EC
 }
 
 

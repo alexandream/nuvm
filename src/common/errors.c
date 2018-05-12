@@ -182,6 +182,7 @@ find_error_type(NErrorRegistry* self, const char* name, NError* error) {
     if (found == NULL) {
         n_set_error(error, UNKNOWN_ERROR_TYPE, "Could not find the given "
                     "name in the type registry.");
+        return NULL;
     }
     return found;
 }

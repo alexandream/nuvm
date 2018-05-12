@@ -6,6 +6,7 @@
 
 #include "common/instruction-encoders.h"
 
+#include "eval/eval.h"
 #include "eval/evaluator.h"
 #include "eval/procedures.h"
 #include "eval/values.h"
@@ -35,23 +36,21 @@ static const
 int PROC_ENTRY = 42;
 
 CONSTRUCTOR(constructor) {
-    NError error = n_error_ok();
+    NError ERR = n_error_ok();
 
-    if (ni_init_evaluator() < 0) {
-        ERROR("Can't initialize evaluator module.", NULL);
-    }
+    NT_INITIALIZE_MODULE(n_init_eval);
 
-    MOD = n_create_module(NUM_REGISTERS, CODE_SIZE, &error);
-    if (!n_is_ok(&error)) {
-        n_destroy_error(&error);
+    MOD = n_create_module(NUM_REGISTERS, CODE_SIZE, &ERR);
+    if (!n_is_ok(&ERR)) {
+        n_destroy_error(&ERR);
         ERROR("Can't create module.", NULL);
     }
     REGISTERS = MOD->globals;
     CODE = MOD->code;
 
-    PROC = n_create_procedure(MOD, PROC_ENTRY, 2, 2, 1, &error);
-    if (!n_is_ok(&error)) {
-        n_destroy_error(&error);
+    PROC = n_create_procedure(MOD, PROC_ENTRY, 2, 2, 1, &ERR);
+    if (!n_is_ok(&ERR)) {
+        n_destroy_error(&ERR);
         ERROR("Can't create module's entry procedure.", NULL);
     }
 

@@ -13,8 +13,8 @@ struct NPrimitive {
     NPrimitiveFunc func;
 };
 
-int
-ni_init_primitives(void);
+void
+ni_init_primitives(NError* error);
 
 NValue
 n_create_primitive(NPrimitiveFunc function, NError *error);

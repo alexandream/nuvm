@@ -19,8 +19,8 @@ struct NModule {
 };
 
 
-int
-ni_init_modules(void);
+void
+ni_init_modules(NError* error);
 
 
 NModule*

@@ -54,49 +54,27 @@ static void
 register_type(NTypeRegistry* self, NType* type, NError* error);
 
 
-int ni_init_type_registry() {
+void
+ni_init_type_registry(NError* error) {
+#define EC ON_ERROR(error, return)
     static int INITIALIZED = 0;
     if (!INITIALIZED) {
-        NError error = n_error_ok();
-
-        n_init_common(&error);
-        if (!n_is_ok(&error)) {
-            n_destroy_error(&error);
-            return -1;
-        }
-
-        construct_registry(&DEFAULT_REGISTRY, &error);
-        if (!n_is_ok(&error)) {
-            n_destroy_error(&error);
-            return -3;
-        }
+        construct_registry(&DEFAULT_REGISTRY, error);                     EC;
 
         {
             NErrorType* next_type = ERROR_TYPES;
             while(next_type->name != NULL) {
-                n_register_error_type(next_type, &error);
-                if (!n_is_ok(&error)) {
-                    n_destroy_error(&error);
-                    return -4;
-                }
+                n_register_error_type(next_type, error);                  EC;
                 next_type++;
             }
         }
 
-        ILLEGAL_ARGUMENT = n_error_type("nuvm.IllegalArgument", &error);
-        if (!n_is_ok(&error)) {
-            n_destroy_error(&error);
-            return -5;
-        }
+        ILLEGAL_ARGUMENT = n_error_type("nuvm.IllegalArgument", error);   EC;
+        BAD_ALLOCATION = n_error_type("nuvm.BadAllocation", error);       EC;
 
-        BAD_ALLOCATION = n_error_type("nuvm.BadAllocation", &error);
-        if (!n_is_ok(&error)) {
-            n_destroy_error(&error);
-            return -6;
-        }
         INITIALIZED = 1;
     }
-    return 0;
+#undef EC
 }
 
 

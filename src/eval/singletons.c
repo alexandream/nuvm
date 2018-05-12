@@ -5,34 +5,26 @@
 static NType _boolean_type;
 static NType _unknown_type;
 
+static
+NErrorType* BAD_ALLOCATION = NULL;
 
 NValue N_TRUE;
 NValue N_FALSE;
 NValue N_UNKNOWN;
 
 
-int
-ni_init_singletons() {
+void
+ni_init_singletons(NError* error) {
+#define EC ON_ERROR(error, return)
     static int INITIALIZED = 0;
     if (!INITIALIZED) {
-        NError error = n_error_ok();
-        if (ni_init_type_registry() < 0) {
-            return -1;
-        }
-
         n_construct_type(&_boolean_type, "nuvm.Boolean");
-        n_register_type(&_boolean_type, &error);
-        if (!n_is_ok(&error)) {
-            n_destroy_error(&error);
-            return -2;
-        }
+        n_register_type(&_boolean_type, error);                      EC;
 
         n_construct_type(&_unknown_type, "nuvm.Unknown");
-        n_register_type(&_unknown_type, &error);
-        if (!n_is_ok(&error)) {
-            n_destroy_error(&error);
-            return -3;
-        }
+        n_register_type(&_unknown_type, error);                      EC;
+
+        BAD_ALLOCATION = n_error_type("nuvm.BadAllocation", error);  EC;
 
         {
             NObject *true_ptr    = malloc(sizeof(NObject));
@@ -40,7 +32,13 @@ ni_init_singletons() {
             NObject *unknown_ptr = malloc(sizeof(NObject));
 
             if (!true_ptr || !false_ptr || !unknown_ptr) {
-                return -4;
+                free(true_ptr);
+                free(false_ptr);
+                free(unknown_ptr);
+                
+                n_set_error(error, BAD_ALLOCATION,
+                        "Unable to allocate space for singletons");
+                return;
             }
 
             true_ptr->type = &_boolean_type;
@@ -53,7 +51,7 @@ ni_init_singletons() {
         }
         INITIALIZED = 1;
     }
-    return 0;
+#undef EC
 }
 
 

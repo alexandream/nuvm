@@ -43,44 +43,18 @@ op_global_ref(NEvaluator *self, unsigned char *stream, NError *error);
 static int
 op_global_set(NEvaluator *self, unsigned char *stream, NError *error);
 
-int
-ni_init_evaluator(void) {
+void
+ni_init_evaluator(NError* error) {
+#define EC ON_ERROR(error, return)
     static int INITIALIZED = 0;
     if (!INITIALIZED) {
-        NError error = n_error_ok();
+        n_register_error_type(&INDEX_OO_BOUNDS, error);                  EC;
+        n_register_error_type(&UNKNOWN_OPCODE, error);                   EC;
 
-        n_init_common(&error);
-        if (!n_is_ok(&error)) {
-            n_destroy_error(&error);
-            return -1;
-        }
-
-        if (ni_init_all_values() < 0) {
-            return -2;
-        }
-        if (ni_init_modules() < 0) {
-            return -3;
-        }
-        n_register_error_type(&INDEX_OO_BOUNDS, &error);
-        if (!n_is_ok(&error)) {
-            n_destroy_error(&error);
-            return -4;
-        }
-
-        n_register_error_type(&UNKNOWN_OPCODE, &error);
-        if (!n_is_ok(&error)) {
-            n_destroy_error(&error);
-            return -5;
-        }
-
-        ILLEGAL_ARGUMENT = n_error_type("nuvm.IllegalArgument", &error);
-        if (!n_is_ok(&error)) {
-            n_destroy_error(&error);
-            return -6;
-        }
+        ILLEGAL_ARGUMENT = n_error_type("nuvm.IllegalArgument", error);  EC;
         INITIALIZED = 1;
     }
-    return 0;
+#undef EC
 }
 
 

@@ -27,8 +27,8 @@ struct NEvaluator {
 };
 
 
-int
-ni_init_evaluator(void);
+void
+ni_init_evaluator(NError* error);
 
 void
 n_evaluator_step(NEvaluator *self, NError *error);

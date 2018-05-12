@@ -3,13 +3,16 @@
 #include "../test.h"
 
 #include "common/errors.h"
+
+#include "eval/eval.h"
 #include "eval/type-registry.h"
 #include "eval/values.h"
 
+NError ERR;
+
 CONSTRUCTOR(constructor) {
-    if (ni_init_values() < 0) {
-        ERROR("Can't initialize fixnum module.", NULL);
-    }
+    ERR = n_error_ok();
+    NT_INITIALIZE_MODULE(n_init_eval);
 }
 
 

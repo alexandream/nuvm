@@ -7,21 +7,15 @@
 
 #include "common/byte-readers.h"
 
+#include "eval/eval.h"
 #include "eval/loader.h"
 #include "eval/procedures.h"
 
 NError ERR;
 
 CONSTRUCTOR(constructor) {
-    NT_INITIALIZE_MODULE(n_init_common);
-
-    if (ni_init_all_values() < 0) {
-        ERROR("Can't initialize values module.", NULL);
-    }
-
-    if (ni_init_loader() < 0) {
-        ERROR("Can't initialize loader module.", NULL);
-    }
+    ERR = n_error_ok();
+    NT_INITIALIZE_MODULE(n_init_eval);
 }
 
 
@@ -111,7 +105,6 @@ TEST(load_procedure_loads_correctly) {
     ASSERT(EQ_INT(proc_ptr->max_locals, 0x05));
     ASSERT(EQ_INT(proc_ptr->size, 0x0706));
 }
-
 
 TEST(load_global_rejects_unknown_id) {
     uint8_t data[] = { 0x02 };

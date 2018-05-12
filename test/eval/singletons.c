@@ -3,17 +3,14 @@
 #include "../test.h"
 
 #include "common/errors.h"
+
+#include "eval/eval.h"
 #include "eval/type-registry.h"
 #include "eval/singletons.h"
 #include "eval/values.h"
 
 CONSTRUCTOR(constructor) {
-    if (ni_init_values() < 0) {
-        ERROR("Can't initialize values module.", NULL);
-    }
-    if (ni_init_singletons() < 0) {
-        ERROR("Can't initialize singletons module.", NULL);
-    }
+    NT_INITIALIZE_MODULE(n_init_eval);
 }
 
 TEST(boolean_type_is_registered) {

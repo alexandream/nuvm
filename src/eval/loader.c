@@ -17,36 +17,19 @@ read_global(NByteReader* reader, NModule* module, NError* error);
 
 
 
-int
-ni_init_loader(void) {
+void
+ni_init_loader(NError* error) {
+#define EC ON_ERROR(error, return)
     static int INITIALIZED = 0;
-    NError error = n_error_ok();
     if (!INITIALIZED) {
-        n_init_common(&error);
-        if (!n_is_ok(&error)) {
-            n_destroy_error(&error);
-            return -1;
-        }
-
-
-        if (ni_init_all_values() < 0) {
-            return -2;
-        }
         INVALID_MODULE_FORMAT =
-            n_error_type("nuvm.InvalidModuleFormat", &error);
+            n_error_type("nuvm.InvalidModuleFormat", error);           EC;
+ 
+        UNEXPECTED_EOF = n_error_type("nuvm.UnexpectedEoF", error);    EC;
 
-        if (!n_is_ok(&error)) {
-            n_destroy_error(&error);
-            return -3;
-        }
-
-        UNEXPECTED_EOF = n_error_type("nuvm.UnexpectedEoF", &error);
-        if (!n_is_ok(&error)) {
-            n_destroy_error(&error);
-            return -4;
-        }
+		INITIALIZED = 1;
     }
-    return 0;
+#undef EC
 }
 
 
@@ -117,7 +100,7 @@ read_procedure_global(NByteReader* reader, NModule *module, NError* error) {
 static NValue
 read_global(NByteReader* reader, NModule* module, NError* error) {
 #define EC ON_ERROR_RETURN(error, 0);
-    uint8_t type = n_read_byte(reader, error);          EC;
+    uint8_t type = n_read_byte(reader, error);                       EC;
     switch (type) {
         case 0x00:
             return read_fixnum32_global(reader, error);

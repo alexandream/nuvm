@@ -6,6 +6,7 @@
 
 #include "common/instruction-encoders.h"
 
+#include "eval/eval.h"
 #include "eval/evaluator.h"
 #include "eval/primitives.h"
 #include "eval/procedures.h"
@@ -68,13 +69,7 @@ copy_function(int n_args, NValue *args, NError *error);
 
 
 CONSTRUCTOR(constructor) {
-    if (ni_init_evaluator() < 0) {
-        ERROR("Can't initialize evaluator module.", NULL);
-    }
-
-    if (ni_init_all_values() < 0) {
-        ERROR("Can't initialize singletons module.", NULL);
-    }
+    NT_INITIALIZE_MODULE(n_init_eval);
 
     TRUE_PRIMITIVE = n_create_primitive(true_function, &ERR);
     if (!n_is_ok(&ERR)) {

@@ -5,28 +5,15 @@
 static
 NErrorType* BAD_ALLOCATION = NULL;
 
-int
-ni_init_modules(void) {
+void
+ni_init_modules(NError* error) {
+#define EC ON_ERROR(error, return)
     static int INITIALIZED = 0;
     if (!INITIALIZED) {
-        NError error = n_error_ok();
-
-        n_init_common(&error);
-        if (!n_is_ok(&error)) {
-            n_destroy_error(&error);
-            return -1;
-        }
-
-
-        BAD_ALLOCATION = n_error_type("nuvm.BadAllocation", &error);
-        if (!n_is_ok(&error)) {
-            n_destroy_error(&error);
-            return -2;
-        }
+        BAD_ALLOCATION = n_error_type("nuvm.BadAllocation", error);    EC;
         INITIALIZED = 1;
     }
-
-    return 0;
+#undef EC
 }
 
 

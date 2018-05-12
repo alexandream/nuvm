@@ -2,6 +2,7 @@
 #define N_E_VALUES_H
 
 #include "../common/compatibility/stdint.h"
+#include "../common/errors.h"
 
 typedef struct NObject NObject;
 typedef struct NType NType;
@@ -23,14 +24,8 @@ struct NObject {
     NType *type;
 };
 
-int
-ni_init_values(void);
-
-/* This function isn't actually defined in the values.c file. Instead,
- * it is part of the 'values-initializer.c' file and is simply a helper
- * for other code that depends on the types being all initialized. */
-int
-ni_init_all_values(void);
+void
+ni_init_values(NError* error);
 
 
 NValue
