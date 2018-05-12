@@ -57,23 +57,18 @@ register_type(NTypeRegistry* self, NType* type, NError* error);
 void
 ni_init_type_registry(NError* error) {
 #define EC ON_ERROR(error, return)
-    static int INITIALIZED = 0;
-    if (!INITIALIZED) {
-        construct_registry(&DEFAULT_REGISTRY, error);                     EC;
+	construct_registry(&DEFAULT_REGISTRY, error);                     EC;
 
-        {
-            NErrorType* next_type = ERROR_TYPES;
-            while(next_type->name != NULL) {
-                n_register_error_type(next_type, error);                  EC;
-                next_type++;
-            }
-        }
+	{
+		NErrorType* next_type = ERROR_TYPES;
+		while(next_type->name != NULL) {
+			n_register_error_type(next_type, error);                  EC;
+			next_type++;
+		}
+	}
 
-        ILLEGAL_ARGUMENT = n_error_type("nuvm.IllegalArgument", error);   EC;
-        BAD_ALLOCATION = n_error_type("nuvm.BadAllocation", error);       EC;
-
-        INITIALIZED = 1;
-    }
+	ILLEGAL_ARGUMENT = n_error_type("nuvm.IllegalArgument", error);   EC;
+	BAD_ALLOCATION = n_error_type("nuvm.BadAllocation", error);       EC;
 #undef EC
 }
 

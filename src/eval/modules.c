@@ -8,11 +8,7 @@ NErrorType* BAD_ALLOCATION = NULL;
 void
 ni_init_modules(NError* error) {
 #define EC ON_ERROR(error, return)
-    static int INITIALIZED = 0;
-    if (!INITIALIZED) {
-        BAD_ALLOCATION = n_error_type("nuvm.BadAllocation", error);    EC;
-        INITIALIZED = 1;
-    }
+	BAD_ALLOCATION = n_error_type("nuvm.BadAllocation", error);    EC;
 #undef EC
 }
 

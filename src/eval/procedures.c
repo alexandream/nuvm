@@ -15,16 +15,11 @@ NType _procedure_type;
 void
 ni_init_procedures(NError* error) {
 #define EC ON_ERROR(error, return)
-    static int INITIALIZED = 0;
-    if (!INITIALIZED) {
-        n_construct_type(&_procedure_type, "nuvm.UserProcedure");
-        n_register_type(&_procedure_type, error);                        EC;
+	n_construct_type(&_procedure_type, "nuvm.UserProcedure");
+	n_register_type(&_procedure_type, error);                        EC;
 
-        BAD_ALLOCATION = n_error_type("nuvm.BadAllocation", error);      EC;
-        ILLEGAL_ARGUMENT = n_error_type("nuvm.IllegalArgument", error);  EC;
-
-        INITIALIZED = 1;
-    }
+	BAD_ALLOCATION = n_error_type("nuvm.BadAllocation", error);      EC;
+	ILLEGAL_ARGUMENT = n_error_type("nuvm.IllegalArgument", error);  EC;
 #undef EC
 }
 

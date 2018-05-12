@@ -46,14 +46,10 @@ op_global_set(NEvaluator *self, unsigned char *stream, NError *error);
 void
 ni_init_evaluator(NError* error) {
 #define EC ON_ERROR(error, return)
-    static int INITIALIZED = 0;
-    if (!INITIALIZED) {
-        n_register_error_type(&INDEX_OO_BOUNDS, error);                  EC;
-        n_register_error_type(&UNKNOWN_OPCODE, error);                   EC;
+	n_register_error_type(&INDEX_OO_BOUNDS, error);                  EC;
+	n_register_error_type(&UNKNOWN_OPCODE, error);                   EC;
 
-        ILLEGAL_ARGUMENT = n_error_type("nuvm.IllegalArgument", error);  EC;
-        INITIALIZED = 1;
-    }
+	ILLEGAL_ARGUMENT = n_error_type("nuvm.IllegalArgument", error);  EC;
 #undef EC
 }
 

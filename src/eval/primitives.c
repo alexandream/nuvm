@@ -14,16 +14,11 @@ NErrorType* BAD_ALLOCATION = NULL;
 void
 ni_init_primitives(NError* error) {
 #define EC ON_ERROR(error, return)
-    static int INITIALIZED = 0;
-    if (!INITIALIZED) {
-        n_construct_type(&_primitive_type, "nuvm.PrimitiveProcedure");
-        n_register_type(&_primitive_type, error);                        EC;
+	n_construct_type(&_primitive_type, "nuvm.PrimitiveProcedure");
+	n_register_type(&_primitive_type, error);                        EC;
 
-        ILLEGAL_ARGUMENT = n_error_type("nuvm.IllegalArgument", error);  EC;
-        BAD_ALLOCATION = n_error_type("nuvm.BadAllocation", error);      EC;
-
-        INITIALIZED = 1;
-    }
+	ILLEGAL_ARGUMENT = n_error_type("nuvm.IllegalArgument", error);  EC;
+	BAD_ALLOCATION = n_error_type("nuvm.BadAllocation", error);      EC;
 #undef EC
 }
 

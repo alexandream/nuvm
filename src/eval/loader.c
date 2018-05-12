@@ -14,21 +14,13 @@ NErrorType* UNEXPECTED_EOF = NULL;
 static NValue
 read_global(NByteReader* reader, NModule* module, NError* error);
 
-
-
-
 void
 ni_init_loader(NError* error) {
 #define EC ON_ERROR(error, return)
-    static int INITIALIZED = 0;
-    if (!INITIALIZED) {
-        INVALID_MODULE_FORMAT =
-            n_error_type("nuvm.InvalidModuleFormat", error);           EC;
- 
-        UNEXPECTED_EOF = n_error_type("nuvm.UnexpectedEoF", error);    EC;
+    INVALID_MODULE_FORMAT =
+        n_error_type("nuvm.InvalidModuleFormat", error);           EC;
 
-		INITIALIZED = 1;
-    }
+    UNEXPECTED_EOF = n_error_type("nuvm.UnexpectedEoF", error);    EC;
 #undef EC
 }
 
