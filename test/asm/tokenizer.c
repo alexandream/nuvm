@@ -33,7 +33,10 @@ next_token_is(NTokenType expected_type, const char* expected_text);
 
 #define EXPECT_TOKEN(TYPE) ASSERT(next_token_is(TYPE, NULL))
 #define EXPECT_DETAILED_TOKEN(TYPE, TEXT) ASSERT(next_token_is(TYPE, TEXT))
-#define EXPECT_EOF() ASSERT(next_token_is(N_TK_EOF, NULL))
+#define EXPECT_EOF() do {                                  \
+    ni_get_next_token(TOKENIZER, &ERR);                    \
+    ASSERT(IS_ERROR(ERR, "nuvm.UnexpectedEoF"));           \
+} while(0)
 
 CONSTRUCTOR(constructor) {
     NT_INITIALIZE_MODULE(n_init_asm);
@@ -51,45 +54,55 @@ TEARDOWN(teardown) {
     ASSERT(IS_OK(ERR));
 }
 
-
-TEST(ignores_only_spaces) {
-    WITH_CONTENTS("  \n \t \n \n \t  ");
+TEST(empty_contents_produces_eof) {
+    WITH_CONTENTS("");
     EXPECT_EOF();
+}
+
+TEST(non_empty_contents_may_have_tokens) {
+    WITH_CONTENTS("{");
+    ASSERT(IS_TRUE(ni_has_more_tokens(TOKENIZER, &ERR)));
+    ASSERT(IS_OK(ERR));
+}
+
+TEST(space_only_contents_produces_eof) {
+	WITH_CONTENTS("  \n \t \n \n \t  ");
+	EXPECT_EOF();
 }
 
 
 TEST(ignores_spaces) {
-    WITH_CONTENTS(" \n\t 1234 \t\n ");
-    EXPECT_DETAILED_TOKEN(N_TK_INTEGER, "1234");
-    EXPECT_EOF();
+	WITH_CONTENTS(" \n\t { \t\n ");
+	EXPECT_TOKEN(N_TK_LBRACE);
+	EXPECT_EOF();
 }
 
 
 TEST(reads_integer_zero) {
-    WITH_CONTENTS("0");
-    EXPECT_DETAILED_TOKEN(N_TK_INTEGER, "0");
-    EXPECT_EOF();
+	WITH_CONTENTS("0");
+	EXPECT_DETAILED_TOKEN(N_TK_INTEGER, "0");
+	EXPECT_EOF();
 }
 
 
 TEST(reads_integer_with_leading_zero) {
-    WITH_CONTENTS("01234");
-    EXPECT_DETAILED_TOKEN(N_TK_INTEGER, "01234");
-    EXPECT_EOF();
+	WITH_CONTENTS("01234");
+	EXPECT_DETAILED_TOKEN(N_TK_INTEGER, "01234");
+	EXPECT_EOF();
 }
 
 
 TEST(reads_integer) {
-    WITH_CONTENTS("10588");
-    EXPECT_DETAILED_TOKEN(N_TK_INTEGER, "10588");
-    EXPECT_EOF();
+	WITH_CONTENTS("10588");
+	EXPECT_DETAILED_TOKEN(N_TK_INTEGER, "10588");
+	EXPECT_EOF();
 }
 
 
 TEST(reads_negative_decimal_integer) {
-    WITH_CONTENTS("-123456789");
-    EXPECT_DETAILED_TOKEN(N_TK_INTEGER, "-123456789");
-    EXPECT_EOF();
+	WITH_CONTENTS("-123456789");
+	EXPECT_DETAILED_TOKEN(N_TK_INTEGER, "-123456789");
+	EXPECT_EOF();
 }
 
 TEST(reads_token_lbrace) {
@@ -178,17 +191,19 @@ TEST(reads_token_op_call) {
 
 
 TEST(reads_sequence_of_tokens) {
-    WITH_CONTENTS("  123 halt .procedure  ");
-    EXPECT_DETAILED_TOKEN(N_TK_INTEGER, "123");
-    EXPECT_TOKEN(N_TK_OP_HALT);
-    EXPECT_TOKEN(N_TK_KW_PROCEDURE);
-    EXPECT_EOF();
+	WITH_CONTENTS("  123 halt .procedure  ");
+	EXPECT_DETAILED_TOKEN(N_TK_INTEGER, "123");
+	EXPECT_TOKEN(N_TK_OP_HALT);
+	EXPECT_TOKEN(N_TK_KW_PROCEDURE);
+	EXPECT_EOF();
 }
 
 
 
 AtTest* tests[] = {
-    &ignores_only_spaces,
+    &empty_contents_produces_eof,
+    &non_empty_contents_may_have_tokens,
+    &space_only_contents_produces_eof,
     &ignores_spaces,
     &reads_integer_zero,
     &reads_integer_with_leading_zero,
@@ -241,7 +256,7 @@ with_contents(const char* data, NError* error) {
     strncpy(BUFFER, data, 512);
     BUFFER[512] = '\0';
 
-    READER = ni_new_char_reader_from_data(BUFFER, 512, error);
+    READER = ni_new_char_reader_from_data(BUFFER, strlen(data), error);
     TOKENIZER = ni_new_tokenizer(READER, 512, error);
 #undef EC
 }

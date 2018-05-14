@@ -220,7 +220,6 @@ memory_advance(NCharReader* reader, NError* error) {
 static int
 memory_is_eof(NCharReader* reader, NError* error) {
     NMemoryCharReader* self = (NMemoryCharReader*) reader;
-
     return self->cursor == self->size;
 }
 
@@ -229,4 +228,3 @@ static void
 memory_destroy(NCharReader* reader, NError* error) {
 
 }
-

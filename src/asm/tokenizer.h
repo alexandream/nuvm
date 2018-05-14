@@ -46,6 +46,9 @@ ni_new_tokenizer(NCharReader* reader, size_t buffer_size, NError* error);
 NTokenType
 ni_get_next_token(NTokenizer* tokenizer, NError* error);
 
+int
+ni_has_more_tokens(NTokenizer* tokenizer, NError* error);
+
 const char*
 ni_get_last_token_text(NTokenizer* tokenizer, NError* error);
 
