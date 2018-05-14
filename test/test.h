@@ -81,6 +81,6 @@ NT_MAKE_MODULE_INIT_ERROR_MSG(NError* error);
         ERROR(msg.contents, msg.clean_up);                         \
     }                                                              \
 } while(0)
-    
+
 
 #endif /* N_TEST_H */

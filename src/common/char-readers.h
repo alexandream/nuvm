@@ -14,6 +14,10 @@ ni_init_char_readers(NError* error);
 NCharReader*
 ni_new_char_reader_from_path(const char* path, NError* error);
 
+NCharReader*
+ni_new_char_reader_from_data(char* buffer, size_t bufer_size,
+                             NError* error);
+
 void
 ni_destroy_char_reader(NCharReader* reader, NError* error);
 

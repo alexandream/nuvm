@@ -52,7 +52,7 @@ ni_init_char_readers(NError* error) {
     MEMORY_VTABLE.advance = memory_advance;
     MEMORY_VTABLE.is_eof = memory_is_eof;
     MEMORY_VTABLE.destroy = memory_destroy;
-    
+
     BAD_ALLOCATION = n_error_type("nuvm.BadAllocation", error);        EC;
     UNEXPECTED_EOF = n_error_type("nuvm.UnexpectedEoF", error);        EC;
     IO_ERROR = n_error_type("nuvm.IoError", error);                    EC;
@@ -146,6 +146,25 @@ cleanup:
 	return NULL;
 }
 
+
+NCharReader*
+ni_new_char_reader_from_data(char* buffer, size_t buffer_size,
+                             NError* error) {
+	NMemoryCharReader* result = malloc(sizeof(NMemoryCharReader));
+	if (result == NULL) {
+		n_set_error(error, BAD_ALLOCATION, "Could not allocate character "
+                    "reader");
+        return NULL;
+	}
+
+    result->parent.vtable = &MEMORY_VTABLE;
+	result->buffer = buffer;
+	result->size = buffer_size;
+	result->cursor = 0;
+    return (NCharReader*) result;
+}
+
+
 void
 ni_destroy_char_reader(NCharReader* reader, NError* error) {
     reader->vtable->destroy(reader, error);
@@ -193,7 +212,7 @@ memory_advance(NCharReader* reader, NError* error) {
                     "reader, got EOF instead.");
         return;
     }
-    
+
     self->cursor++;
 }
 
