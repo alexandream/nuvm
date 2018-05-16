@@ -97,8 +97,6 @@ ni_init_proto_values(NError* error) {
     BAD_ALLOCATION = n_error_type("nuvm.BadAllocation", error);         EC;
     ILLEGAL_ARGUMENT = n_error_type("nuvm.IllegalArgument", error);     EC;
 
-    ni_init_proto_instructions(error);                                  EC;
-
     init_vtables();
 #undef EC
 }
@@ -182,6 +180,7 @@ ni_create_proto_procedure(uint8_t min_locals, uint8_t max_locals,
         n_set_error(error, BAD_ALLOCATION, "Could not allocate space for "
                     "the NProtoProcedure");
         free(self);
+        /* FIXME: self->instructions will leak in this case. */
         return NULL;
     }
 

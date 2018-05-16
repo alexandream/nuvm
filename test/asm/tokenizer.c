@@ -256,8 +256,8 @@ with_contents(const char* data, NError* error) {
     strncpy(BUFFER, data, 512);
     BUFFER[512] = '\0';
 
-    READER = ni_new_char_reader_from_data(BUFFER, strlen(data), error);
-    TOKENIZER = ni_new_tokenizer(READER, 512, error);
+    READER = ni_new_char_reader_from_data(BUFFER, strlen(data), error);  EC;
+    TOKENIZER = ni_new_tokenizer(READER, 512, error);                    EC;
 #undef EC
 }
 
