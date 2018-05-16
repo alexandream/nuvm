@@ -23,8 +23,6 @@ NErrorType* BAD_ALLOCATION = NULL;
 static
 NErrorType* OVERFLOW = NULL;
 
-static int
-is_space(char input);
 
 static char
 peek_over_eof(NCharReader* reader, NError* error);
@@ -89,33 +87,44 @@ clean_up:
     return NULL;
 }
 
-NTokenType
+NToken
 ni_get_next_token(NTokenizer* self, NError* error) {
-#define EC ON_ERROR_RETURN(error, 0)
+#define EC ON_ERROR_RETURN(error, result)
     char current_char;
+    NToken result;
+    NCharReaderPosition position;
 
     self->buffer[0] = '\0';
 
     discard_spaces(self, error);                                          EC;
-    current_char = ni_peek_char(self->reader, error);                     EC;
+    position = ni_char_reader_get_position(self->reader);
+    result.type = 0;
+    result.line = position.line;
+    result.column = position.column;
 
+    current_char = ni_peek_char(self->reader, error);                     EC;
     if (current_char == '{') {
-        return read_single_character_token(self, N_TK_LBRACE, error);
+        result.type = read_single_character_token(self, N_TK_LBRACE, error);
+        return result;
     }
     else if (current_char == '}') {
-        return read_single_character_token(self, N_TK_RBRACE, error);
+        result.type = read_single_character_token(self, N_TK_RBRACE, error);
+        return result;
     }
     else if (current_char == '.') {
-        return read_keyword(self, error);
+        result.type = read_keyword(self, error);
+        return result;
     }
     else if (isalpha(current_char)) {
-        return read_instruction(self, error);
+        result.type = read_instruction(self, error);
+        return result;
     }
     else if (isdigit(current_char) || current_char == '-' ||
              current_char == '+') {
-        return read_integer(self, error);
+        result.type = read_integer(self, error);
+        return result;
     }
-    return 0;
+    return result;
 #undef EC
 }
 
@@ -153,12 +162,6 @@ ni_get_token_name(NTokenType type) {
 }
 
 
-static int
-is_space(char input) {
-    /* Our definition of "space" will probably differ from C89's soon. */
-    return isspace(input);
-}
-
 
 static char
 peek_over_eof(NCharReader* reader, NError* error) {
@@ -171,7 +174,7 @@ static void
 discard_spaces(NTokenizer* self, NError* error) {
 #define EC ON_ERROR(error, return)
     char current_char = peek_over_eof(self->reader, error);          EC;
-    while (current_char != '\0' && is_space(current_char)) {
+    while (current_char != '\0' && isspace(current_char)) {
         ni_advance_char(self->reader, error);                        EC;
         current_char = peek_over_eof(self->reader, error);           EC;
     }
@@ -186,7 +189,7 @@ read_single_character_token(NTokenizer* self, NTokenType token,
     char next_char;
     ni_advance_char(self->reader, error);                            EC;
     next_char = peek_over_eof(self->reader, error);                  EC;
-    if (next_char == '\0' || is_space(next_char)) {
+    if (next_char == '\0' || isspace(next_char)) {
         return token;
     }
     return 0;
@@ -207,7 +210,7 @@ copy_next_word_to_buffer(NTokenizer* self, size_t start,
 #define EC ON_ERROR_RETURN(error, 0)
     size_t i = start;
     char current_char = peek_over_eof(self->reader, error);         EC;
-    while (current_char != '\0' && !is_space(current_char) &&
+    while (current_char != '\0' && !isspace(current_char) &&
            is_acceptable(current_char)) {
         if (i >= self->buffer_size) {
             n_set_error(error, OVERFLOW, "Next token is bigger than the "
@@ -221,7 +224,7 @@ copy_next_word_to_buffer(NTokenizer* self, size_t start,
         current_char = peek_over_eof(self->reader, error);           EC;
     }
     self->buffer[i] = '\0';
-    return current_char == '\0' || is_space(current_char);
+    return current_char == '\0' || isspace(current_char);
 #undef EC
 }
 

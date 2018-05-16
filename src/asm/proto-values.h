@@ -22,6 +22,9 @@ NProtoProcedure *
 ni_create_proto_procedure(uint8_t min_locals, uint8_t max_locals,
                           NError *error);
 
+void
+ni_destroy_proto_value(NProtoValue* self);
+
 uint16_t
 ni_proto_value_code_size(NProtoValue* self);
 

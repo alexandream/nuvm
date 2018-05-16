@@ -16,6 +16,7 @@ struct NCharReaderVTable {
 
 struct NCharReader {
     NCharReaderVTable *vtable;
+    NCharReaderPosition position;
 };
 
 
@@ -126,6 +127,9 @@ ni_new_char_reader_from_path(const char* path, NError* error) {
 		buffer[file_size] = '\0';
 	}
     result->parent.vtable = &MEMORY_VTABLE;
+    result->parent.position.line = 1;
+    result->parent.position.column = 1;
+
 	result->buffer = buffer;
     /* TODO: Properly verify bounds on the conversion; */
 	result->size = (size_t) file_size;
@@ -170,15 +174,24 @@ ni_destroy_char_reader(NCharReader* reader, NError* error) {
     reader->vtable->destroy(reader, error);
 }
 
+
+NCharReaderPosition
+ni_char_reader_get_position(NCharReader* reader) {
+    return reader->position;
+}
+
+
 int
 ni_char_reader_is_eof(NCharReader* reader, NError* error) {
     return reader->vtable->is_eof(reader, error);
 }
 
+
 void
 ni_advance_char(NCharReader* reader, NError* error) {
     reader->vtable->advance(reader, error);
 }
+
 
 char
 ni_peek_char(NCharReader* reader, NError* error) {
@@ -212,7 +225,14 @@ memory_advance(NCharReader* reader, NError* error) {
                     "reader, got EOF instead.");
         return;
     }
-
+    /* FIXME: this implementation only deals with unix file endings. */
+    if (self->buffer[self->cursor] == '\n') {
+        self->parent.position.line++;
+        self->parent.position.column = 1;
+    }
+    else {
+        self->parent.position.column++;
+    }
     self->cursor++;
 }
 

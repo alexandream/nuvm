@@ -267,7 +267,8 @@ next_token_is(NTokenType expected_type, const char* expected_text) {
     int texts_match;
     const char* text = NULL;
 
-    NTokenType type = ni_get_next_token(TOKENIZER, &ERR);
+    NToken token = ni_get_next_token(TOKENIZER, &ERR);
+    NTokenType type = token.type;
     if (!n_is_ok(&ERR)) {
         const char* msg =
             at_allocf("Got an \"%s\" error while trying to get next token.",

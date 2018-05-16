@@ -110,6 +110,12 @@ ni_proto_value_code_size(NProtoValue* self) {
 
 
 void
+ni_destroy_proto_value(NProtoValue* self) {
+    self->vtable->destroy(self);
+}
+
+
+void
 ni_resolve_anchors(NProtoValue* self, NError *error) {
     if (self->vtable->resolve_anchors != NULL) {
         self->vtable->resolve_anchors(self, error);
@@ -435,6 +441,11 @@ proc_anchor_map_get_offset(NAnchorMap* generic_self, int id) {
 }
 
 
+static void
+destroy_by_freeing(NProtoValue* self) {
+    free(self);
+}
+
 
 static void
 init_vtables(void) {
@@ -442,7 +453,7 @@ init_vtables(void) {
     FIXNUM32_VTABLE.emit_declaration = fixnum_emit_declaration;
     FIXNUM32_VTABLE.emit_code        = NULL;
     FIXNUM32_VTABLE.resolve_anchors  = NULL;
-    FIXNUM32_VTABLE.destroy          = NULL;
+    FIXNUM32_VTABLE.destroy          = destroy_by_freeing;
 
     PROCEDURE_VTABLE.code_size        = procedure_code_size;
     PROCEDURE_VTABLE.emit_declaration = procedure_emit_declaration;

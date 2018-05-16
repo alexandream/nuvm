@@ -6,7 +6,6 @@
 #include "../common/char-readers.h"
 
 typedef struct NTokenizer NTokenizer;
-
 enum NTokenType {
     N_TK_LBRACE = 1,
     N_TK_RBRACE,
@@ -34,6 +33,13 @@ enum NTokenType {
 
 typedef enum NTokenType NTokenType;
 
+typedef struct {
+    NTokenType type;
+    size_t line;
+    size_t column;
+} NToken;
+
+
 void
 ni_init_tokenizer(NError* error);
 
@@ -43,7 +49,7 @@ ni_destroy_tokenizer(NTokenizer* tokenizer, NError* error);
 NTokenizer*
 ni_new_tokenizer(NCharReader* reader, size_t buffer_size, NError* error);
 
-NTokenType
+NToken
 ni_get_next_token(NTokenizer* tokenizer, NError* error);
 
 int
