@@ -1,0 +1,126 @@
+
+# Project structure
+
+The code is separated in a set of libraries, each responsible for a given
+facet of the ecosystem surrounding the virtual machine. So far, only three are
+needed:
+
+* Common;
+* Asm;
+* Eval;
+
+## Common
+
+The common library is composed of all basic and infrastructure code that is
+common to more than one of the other libraries. Examples are infrastructure
+for handling errors throughout the program, some interfaces for IO and
+instruction specific code that is used both in the assembler and the
+evaluator.
+
+It also houses all code needed for compatibility purposes, like polyfills for
+functions present in later standards of the C language or library functions
+that are not always available on all systems.
+
+Finally, whenever there's need for data structures that are implemented in a
+somewhat generic way (using macro-heavy templates), those are also part of the
+common library.
+
+Below is a list of the files in the common library and their intended
+purposes:
+
+
+byte-readers
+
+:    An IO interface to read binary data from a memory or filesystem source.
+     Can be expanded to handle other sources as it's implemented using a
+     virtual method table.
+
+
+char-readers
+
+:     An IO interface to read character data from a memory or filesystem
+      source.  Can be expanded to handle other sources as it's implemented
+      using a virtual method table.
+
+
+errors
+
+:    The infrastructure of error reporting used throughout all libraries. It
+     defines mechanisms for defining error types and for comparing errors to
+     known types.
+
+
+instruction-decoders
+
+:    A set of functions to read instruction data from binary format. Perhaps
+    this should be in the eval library or maybe instructions might have a
+    library of their own.
+
+
+instruction-encoders
+
+:    Pretty much the complement of the instruction-decoders. This one takes
+    instruction data and write it to a binary format. Probably shouldn't be
+    here.
+
+
+name-registry
+
+:    An associative mapping between names (strings) and objects. It's
+    probably going away in a while, when we add a hash-map implementation to
+    the project. For now, it's there to make part of the code smaller in
+    other files.
+
+
+opcodes
+
+:    Basic information on the opcodes known by the machine: their numeric
+    id, the enum that holds them and a way to convert an opcode to a
+    descriptive string.
+
+
+templates/vector.h
+
+:    A naive, slightly hackish, implementation of a dynamic vector using C
+    macros to mimic C++ templates. Ugly, but it's hard to do much better
+    than macros in C.
+
+
+## Asm, the assembler
+
+## Eval, the virtual machine
+
+# Program structure
+## Syntax
+# Virtual Machine
+## Modules
+## Activation Stack
+
+
+
+
+
+
+
+
+The structure of a program
+
+A module in the nuvm language is composed of a series of values, some of
+which are procedures. The sum of all code in those procedures define the the
+code of the module itself. The very first of those values is the entry-point
+of the module, the procedure which is called when the module is loaded.
+
+A program is a group of one of more modules and its main function is the
+entry-point of the first module. So far, since we didn't implement the logic
+to trigger dynamic loading of modules, only single module programs are
+supported.
+
+
+
+
+
+The virtual machine is a register-based machine in which the registers are
+stored in a stack of activation frames. These registers represent the local
+storage of the currently executing procedure. Also, each module holds a set of
+global registers that are shared between every procedure declared inside that
+module.
