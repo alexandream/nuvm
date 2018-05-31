@@ -11,6 +11,8 @@ enum NTokenType {
     N_TK_RBRACE,
     N_TK_INTEGER,
     N_TK_EOF,
+    N_TK_LABEL_DEF,
+    N_TK_LABEL_REF,
 
     N_TK_XX_BEGIN_KEYWORDS,
     N_TK_KW_FIXNUM32,

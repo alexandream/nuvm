@@ -199,6 +199,33 @@ TEST(reads_sequence_of_tokens) {
 }
 
 
+TEST(reads_label_def) {
+    WITH_CONTENTS(" cleanup: ");
+    EXPECT_DETAILED_TOKEN(N_TK_LABEL_DEF, "cleanup");
+    EXPECT_EOF();
+}
+
+
+TEST(reads_label_def_named_as_op) {
+    WITH_CONTENTS(" halt:" );
+    EXPECT_DETAILED_TOKEN(N_TK_LABEL_DEF, "halt");
+    EXPECT_EOF();
+}
+
+
+TEST(reads_label_ref) {
+    WITH_CONTENTS(" @cleanup ");
+    EXPECT_DETAILED_TOKEN(N_TK_LABEL_REF, "cleanup");
+    EXPECT_EOF();
+}
+
+
+TEST(reads_label_ref_named_as_op) {
+    WITH_CONTENTS(" @halt" );
+    EXPECT_DETAILED_TOKEN(N_TK_LABEL_REF, "halt");
+    EXPECT_EOF();
+}
+
 
 AtTest* tests[] = {
     &empty_contents_produces_eof,
@@ -222,6 +249,10 @@ AtTest* tests[] = {
     &reads_token_op_load_i16,
     &reads_token_op_call,
     &reads_sequence_of_tokens,
+    &reads_label_def,
+    &reads_label_def_named_as_op,
+    &reads_label_ref,
+    &reads_label_ref_named_as_op,
     NULL
 };
 

@@ -34,10 +34,13 @@ static NTokenType
 read_single_character_token(NTokenizer* self, NTokenType token,
                             NError* error);
 static NTokenType
-read_instruction(NTokenizer* self, NError* error);
+read_instruction_or_label(NTokenizer* self, NError* error);
 
 static NTokenType
 read_keyword(NTokenizer* self, NError* error);
+
+static NTokenType
+read_label_ref(NTokenizer* self, NError* error);
 
 static NTokenType
 read_integer(NTokenizer* self, NError* error);
@@ -115,8 +118,12 @@ ni_get_next_token(NTokenizer* self, NError* error) {
         result.type = read_keyword(self, error);
         return result;
     }
+    else if (current_char == '@') {
+        result.type = read_label_ref(self, error);
+        return result;
+    }
     else if (isalpha(current_char)) {
-        result.type = read_instruction(self, error);
+        result.type = read_instruction_or_label(self, error);
         return result;
     }
     else if (isdigit(current_char) || current_char == '-' ||
@@ -146,6 +153,8 @@ ni_get_token_name(NTokenType type) {
         case N_TK_LBRACE: return "TK_LBRACE";
         case N_TK_RBRACE: return "TK_RBRACE";
         case N_TK_INTEGER: return "TK_INTEGER";
+        case N_TK_LABEL_DEF: return "TK_LABEL_DEF";
+        case N_TK_LABEL_REF: return "TK_LABEL_REF";
         case N_TK_EOF: return "TK_EOF";
         case N_TK_KW_FIXNUM32: return "TK_KW_FIXNUM32";
         case N_TK_KW_PROCEDURE: return "TK_KW_PROCEDURE";
@@ -198,7 +207,7 @@ read_single_character_token(NTokenizer* self, NTokenType token,
 
 
 static int
-is_acceptable(char input) {
+is_identifier(char input) {
     return isalnum(input) || input == '-';
 }
 
@@ -242,20 +251,29 @@ NTokenMapping INSTRUCTIONS[] = {
     { NULL, 0 }
 };
 
-static NTokenType
-read_instruction(NTokenizer* self, NError* error) {
-#define EC ON_ERROR_RETURN(error, 0)
-    int fully_acceptable;
-    fully_acceptable =
-        copy_next_word_to_buffer(self, 0, is_acceptable, error);       EC;
 
-    if (fully_acceptable) {
+static NTokenType
+read_instruction_or_label(NTokenizer* self, NError* error) {
+#define EC ON_ERROR_RETURN(error, 0)
+    char last_peek;
+    copy_next_word_to_buffer(self, 0, is_identifier, error);       EC;
+    last_peek = peek_over_eof(self->reader, error);                EC;
+
+    if (last_peek == '\0' || isspace(last_peek)) {
         NTokenMapping* m = INSTRUCTIONS;
         while (m->text != NULL) {
             if (strcmp(self->buffer, m->text) == 0) {
                 return m->token_type;
             }
             m++;
+        }
+    }
+    else if (last_peek == ':') {
+        char next_char;
+        ni_advance_char(self->reader, error);                        EC;
+        next_char = peek_over_eof(self->reader, error);              EC;
+        if (next_char == '\0' || isspace(next_char)) {
+            return N_TK_LABEL_DEF;
         }
     }
     return 0;
@@ -277,7 +295,7 @@ read_keyword(NTokenizer* self, NError* error) {
     ni_advance_char(self->reader, error);                            EC;
 
     fully_acceptable =
-        copy_next_word_to_buffer(self, 0, is_acceptable, error);     EC;
+        copy_next_word_to_buffer(self, 0, is_identifier, error);     EC;
 
     if (fully_acceptable) {
         NTokenMapping* m = KEYWORDS;
@@ -287,6 +305,24 @@ read_keyword(NTokenizer* self, NError* error) {
             }
             m++;
         }
+    }
+    return 0;
+#undef EC
+}
+
+
+static NTokenType
+read_label_ref(NTokenizer* self, NError* error) {
+#define EC ON_ERROR_RETURN(error, 0)
+    int fully_acceptable;
+
+    ni_advance_char(self->reader, error);                            EC;
+
+    fully_acceptable =
+        copy_next_word_to_buffer(self, 0, is_identifier, error);     EC;
+
+    if (fully_acceptable) {
+        return N_TK_LABEL_REF;
     }
     return 0;
 #undef EC
