@@ -464,3 +464,38 @@ init_vtables(void) {
     PROC_ANCHOR_MAP_VTABLE.get_offset = proc_anchor_map_get_offset;
 }
 
+#ifdef N_TEST
+
+int
+nt_matches_proto_fixnum32(NProtoValue* value, int32_t contents) {
+    NProtoFixnum32* fixnum;
+
+    if (value->vtable != &FIXNUM32_VTABLE) {
+        return 0;
+    }
+
+    fixnum = (NProtoFixnum32*) value;
+    return fixnum->value == contents;
+}
+
+
+int
+nt_matches_proto_procedure(NProtoValue* value, uint8_t min, uint8_t max,
+                           size_t num_instructions) {
+    NProtoProcedure* proc;
+    if (value->vtable != &PROCEDURE_VTABLE) {
+        return 0;
+    }
+    
+    proc = (NProtoProcedure*) value;
+    return proc->min_locals == min && proc->max_locals == max
+        && proc->instructions.size == num_instructions;
+}
+
+
+NProtoInstruction*
+nt_list_proto_procedure_instrs(NProtoValue* value) {
+    return ((NProtoProcedure*) value)->instructions.pool;
+}
+
+#endif /*N_TEST*/

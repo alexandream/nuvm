@@ -5,6 +5,7 @@
 #include "../common/compatibility/stdint.h"
 #include "../common/byte-writers.h"
 
+
 typedef struct NProtoValue NProtoValue;
 typedef struct NProtoFixnum32 NProtoFixnum32;
 typedef struct NProtoProcedure NProtoProcedure;
@@ -73,5 +74,21 @@ ni_add_proto_global_set(NProtoProcedure* self, uint16_t dest,
 void
 ni_add_proto_return(NProtoProcedure* self, uint8_t source, NError* error);
 
+
+#ifdef N_TEST
+
+int
+nt_matches_proto_fixnum32(NProtoValue* value, int32_t contents);
+
+int
+nt_matches_proto_procedure(NProtoValue* value, uint8_t min, uint8_t max,
+                           size_t num_instructions);
+
+#include "proto-instructions.h"
+
+NProtoInstruction*
+nt_list_proto_procedure_instrs(NProtoValue* value);
+
+#endif /*N_TEST*/
 
 #endif /*N_A_PROTO_VALUES_H*/

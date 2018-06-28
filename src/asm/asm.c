@@ -5,6 +5,7 @@
 #include "tokenizer.h"
 #include "proto-instructions.h"
 #include "proto-values.h"
+#include "parser.h"
 
 void
 n_init_asm(NError* error) {
@@ -14,5 +15,6 @@ n_init_asm(NError* error) {
     ni_init_tokenizer(error);                                      EC;
     ni_init_proto_instructions(error);                             EC;
     ni_init_proto_values(error);                                   EC;
+    ni_init_parser(error);                                         EC;
 #undef EC
 }

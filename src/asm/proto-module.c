@@ -66,6 +66,13 @@ clean_up:
 
 
 void
+ni_destroy_proto_module(NProtoModule* self) {
+    vvec_destruct(&self->values);
+    free(self);
+}
+
+
+void
 ni_add_proto_value(NProtoModule* self, NProtoValue* value, NError* error) {
     int vvec_error = 0;
 

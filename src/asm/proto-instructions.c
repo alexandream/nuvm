@@ -384,3 +384,60 @@ void init_vtables(void) {
     GLOBAL_SET_VTABLE.size = global_set_size;
     GLOBAL_SET_VTABLE.emit = global_set_emit;
 }
+
+
+#ifdef N_TEST
+int
+nt_matches_proto_nop(NProtoInstruction* instr) {
+    return instr->vtable == &NOP_VTABLE;
+}
+
+
+int
+nt_matches_proto_halt(NProtoInstruction* instr) {
+    return instr->vtable == &HALT_VTABLE;
+}
+
+
+static int
+extra_u8s_eq(uint8_t *left, uint8_t *right, uint8_t n_elems) {
+    int i;
+    for (i = 0; i < n_elems; i++) {
+        if (left[i] != right[i]) {
+            return 0;
+        }
+    }
+    return 1;
+}
+
+
+int
+nt_matches_proto_call(NProtoInstruction* instr, uint8_t dest,
+                      uint8_t target, uint8_t n_args, uint8_t* args) {
+    return instr->vtable == &CALL_VTABLE && instr->u8s[0] == dest 
+        && instr->u8s[1] == target && instr->u8s[2] == n_args
+        && extra_u8s_eq(instr->u8s_extra, args, n_args);
+}
+
+
+int
+nt_matches_proto_global_ref(NProtoInstruction* instr, uint8_t dest,
+                            uint16_t source) {
+    return instr->vtable == &GLOBAL_REF_VTABLE && instr->u8s[0] == dest 
+        && instr->u16s[0] == source;
+}
+
+
+int
+nt_matches_proto_global_set(NProtoInstruction* instr, uint16_t dest,
+                            uint8_t source) {
+    return instr->vtable == &GLOBAL_SET_VTABLE && instr->u16s[0] == dest
+        && instr->u8s[0] == source; 
+}
+
+
+int
+nt_matches_proto_return(NProtoInstruction* instr, uint8_t source) {
+    return instr->vtable == &RETURN_VTABLE && instr->u8s[0] == source;
+}
+#endif /*N_TEST*/

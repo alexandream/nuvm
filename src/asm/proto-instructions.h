@@ -80,4 +80,28 @@ n_proto_global_set(uint16_t dest, uint8_t source);
 NProtoInstruction
 n_proto_return(uint8_t source);
 
+#ifdef N_TEST
+int
+nt_matches_proto_nop(NProtoInstruction* instr);
+
+int
+nt_matches_proto_halt(NProtoInstruction* instr);
+
+int
+nt_matches_proto_call(NProtoInstruction* instr, uint8_t dest,
+                      uint8_t target, uint8_t n_args, uint8_t* args);
+
+int
+nt_matches_proto_global_ref(NProtoInstruction* instr, uint8_t dest,
+                            uint16_t source);
+
+int
+nt_matches_proto_global_set(NProtoInstruction* instr, uint16_t dest,
+                            uint8_t source);
+
+int
+nt_matches_proto_return(NProtoInstruction* instr, uint8_t source);
+
+#endif /*N_TEST*/
+
 #endif /*N_A_PROTO_INSTRUCTIONS_H*/

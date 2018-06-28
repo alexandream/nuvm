@@ -143,6 +143,9 @@ ni_get_last_token_text(NTokenizer* self, NError* error) {
 
 int
 ni_has_more_tokens(NTokenizer* self, NError* error) {
+    discard_spaces(self, error);
+    if (!n_is_ok(error)) return 0;
+
     return !ni_char_reader_is_eof(self->reader, error);
 }
 
@@ -211,7 +214,6 @@ is_identifier(char input) {
     return isalnum(input) || input == '-';
 }
 
-#include <stdio.h>
 
 static int
 copy_next_word_to_buffer(NTokenizer* self, size_t start,
@@ -225,7 +227,6 @@ copy_next_word_to_buffer(NTokenizer* self, size_t start,
             n_set_error(error, OVERFLOW, "Next token is bigger than the "
                         "internal buffer.");
             self->buffer[self->buffer_size] = '\0';
-            fprintf(stderr, "Overflow on: %s.\n", self->buffer);
             return 0;
         }
         self->buffer[i++] = current_char;

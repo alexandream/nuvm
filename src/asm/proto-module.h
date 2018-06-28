@@ -15,6 +15,9 @@ NProtoModule*
 ni_create_proto_module(NError* error);
 
 void
+ni_destroy_proto_module(NProtoModule* self);
+
+void
 ni_add_proto_value(NProtoModule* module, NProtoValue* value, NError* error);
 
 size_t

@@ -24,6 +24,7 @@ NErrorType ERROR_TYPES[] = {
     { "nuvm.InvalidModuleFormat" },
     { "nuvm.Overflow" },
     { "nuvm.IoError" },
+    { "nuvm.UnexpectedToken" },
     { NULL }
 };
 
